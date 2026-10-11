@@ -29,11 +29,14 @@ create policy "read own save" on public.saves for select using (auth.uid() = use
 create policy "insert own save" on public.saves for insert with check (auth.uid() = user_id);
 create policy "update own save" on public.saves for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- 3. When someone creates an account, add them to the community newsletter list
+-- 3. Add someone to the community newsletter list only AFTER they confirm their email
 create or replace function public.handle_new_user() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
-  if coalesce(new.raw_user_meta_data->>'newsletter', '') = 'true' and new.email is not null then
+  if new.email_confirmed_at is not null
+     and (tg_op = 'INSERT' or old.email_confirmed_at is null)
+     and coalesce(new.raw_user_meta_data->>'newsletter', '') = 'true'
+     and new.email is not null then
     insert into public.subscribers (email, first_name, last_name, source, consent_text)
     values (lower(new.email), new.raw_user_meta_data->>'first_name', new.raw_user_meta_data->>'last_name', 'cafe-account',
             'Joined the Flow State community newsletter by creating an account. Welcome to unsubscribe after the first issue.')
@@ -44,5 +47,6 @@ end;
 $$;
 
 drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created after insert on auth.users
+drop trigger if exists on_auth_user_confirmed on auth.users;
+create trigger on_auth_user_confirmed after insert or update of email_confirmed_at on auth.users
   for each row execute function public.handle_new_user();
