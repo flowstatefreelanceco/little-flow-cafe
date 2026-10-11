@@ -259,14 +259,17 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 .lead.small { font-size: 0.95rem; color: var(--muted); }
 
 .splash {
+  --splash-base: #fcf5e4;
   position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 18px; overflow: auto;
   background:
-    radial-gradient(ellipse 60% 50% at 18% 15%, color-mix(in srgb, #f6b7c4 55%, transparent), transparent 70%),
-    radial-gradient(ellipse 55% 55% at 85% 20%, color-mix(in srgb, #ffd89a 60%, transparent), transparent 70%),
-    radial-gradient(ellipse 60% 55% at 70% 90%, color-mix(in srgb, #a9d8b8 60%, transparent), transparent 70%),
-    radial-gradient(ellipse 50% 50% at 10% 85%, color-mix(in srgb, #b9cdf0 50%, transparent), transparent 70%),
-    var(--bg);
+    radial-gradient(ellipse 60% 50% at 18% 15%, color-mix(in srgb, #f6b7c4 22%, transparent), transparent 70%),
+    radial-gradient(ellipse 55% 55% at 85% 20%, color-mix(in srgb, #ffd89a 30%, transparent), transparent 70%),
+    radial-gradient(ellipse 60% 55% at 70% 90%, color-mix(in srgb, #a9d8b8 24%, transparent), transparent 70%),
+    radial-gradient(ellipse 50% 50% at 10% 85%, color-mix(in srgb, #b9cdf0 20%, transparent), transparent 70%),
+    var(--splash-base);
 }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .splash { --splash-base: var(--bg); } }
+:root[data-theme="dark"] .splash, :root[data-phase="night"] .splash { --splash-base: var(--bg); }
 .splash[hidden] { display: none; }
 .splash-card { width: min(520px, 100%); box-sizing: border-box; text-align: center; background: var(--panel); border: 1.5px solid var(--edge); border-radius: 26px; box-shadow: var(--shadow); padding: 36px 32px 30px; display: flex; flex-direction: column; align-items: center; gap: 18px; }
 .splash-card > * { margin: 0; }
