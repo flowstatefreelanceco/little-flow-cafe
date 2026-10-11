@@ -839,13 +839,13 @@
     var sky = skyAt(this.state.hour);
     this.sky = sky;
     var night = clamp(sky.ta * 1.7, 0, 0.85);
-    var paper = mix('#fbf4e6', mix(sky.top, '#3a3558', 0.5), night);
+    var paper = mix('#fbf6ec', mix(sky.top, '#3a3558', 0.5), night);
     g.fillStyle = paper; g.fillRect(0, 0, W, H);
     // loose watercolor washes behind the room
     var washes = [[70, 60, 170, '#e9a07a'], [510, 70, 160, '#8fc4c8'], [50, 360, 170, '#a8c88a'], [530, 370, 170, '#f0c46a'], [288, 410, 140, '#d98aa0'], [300, 24, 140, '#b8a6d8']];
     washes.forEach(function (w) {
       var gr = g.createRadialGradient(w[0], w[1], 0, w[0], w[1], w[2]);
-      gr.addColorStop(0, w[3] + (night > 0.4 ? '30' : '26')); gr.addColorStop(1, w[3] + '00');
+      gr.addColorStop(0, w[3] + (night > 0.4 ? '14' : '0c')); gr.addColorStop(1, w[3] + '00');
       g.fillStyle = gr; g.fillRect(w[0] - w[2], w[1] - w[2], w[2] * 2, w[2] * 2);
     });
   };
@@ -1560,44 +1560,15 @@
   var FS = [
     'precision highp float;varying vec2 v;',
     'uniform sampler2D uT,uP,uE;uniform vec2 uR;uniform float uEdge;uniform float uDark;',
-    'float h(vec2 q){return fract(sin(dot(q,vec2(127.1,311.7)))*43758.5453);}',
-    'float vn(vec2 q){vec2 i=floor(q),f=fract(q);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}',
-    'float fb(vec2 q){return vn(q)*.55+vn(q*2.1+7.3)*.3+vn(q*4.3+2.9)*.15;}',
-    'vec3 S(vec2 u){return texture2D(uT,u).rgb;}',
     'void main(){',
     ' vec2 px=1./uR;',
-    ' vec2 q=v*uR;',
-    // crayon edge: broad drift plus a fine chalky tremble so silhouettes are never clean
-    ' vec2 w=vec2(fb(q*.02)-.5,fb(q*.02+31.7)-.5)*1.2+vec2(vn(q*.16)-.5,vn(q*.16+9.1)-.5)*.5;',
-    ' vec2 u=v+w*px;',
-    ' vec3 c=S(u)*.80;',
-    ' float r=.6;',
-    ' c+=(S(u+vec2(r,0.)*px)+S(u-vec2(r,0.)*px)+S(u+vec2(0.,r)*px)+S(u-vec2(0.,r)*px))*.03;',
-    ' c+=(S(u+vec2(r,r)*px)+S(u-vec2(r,r)*px)+S(u+vec2(r,-r)*px)+S(u-vec2(r,-r)*px))*.0;',
-    // gouache grade: matte, chalky, dusty. lifted blacks, low saturation, a touch of warmth
+    ' vec3 c=texture2D(uT,v).rgb;',
+    // a very light matte grade only. no paper, no grain, no blur: the drawing stays crisp
     ' float lu=dot(c,vec3(.3,.59,.11));',
-    ' c=mix(vec3(lu),c,.84);',
-    ' c=c*.88+vec3(.11,.10,.08);',
-    ' c=mix(c,c*vec3(1.03,1.0,.95),.7);',
-    // edges go lighter and dusty, like crayon wearing off at the rim
-    ' vec3 b=(S(u+vec2(3.,0.)*px)+S(u-vec2(3.,0.)*px)+S(u+vec2(0.,3.)*px)+S(u-vec2(0.,3.)*px))*.25;',
-    ' float e=clamp(length(c-b)*2.6,0.,1.);',
-    ' c=mix(c,vec3(.97,.93,.86),.04*e*(1.-uDark));',
-    // stippled grain: paper tooth showing through pigment, plus soft mottling
-    ' vec3 pp=texture2D(uP,v).rgb;',
-    ' c*=mix(vec3(1.),pp,.45);',
-    ' float gr=fb(q*.45);',
-    ' float sp=h(floor(q*.62)+floor(q*.012));',
-    ' float tooth=smoothstep(.80,1.,sp)*(.16-.1*uDark);',
-    ' float dark=smoothstep(.0,.14,sp)*.05;',
-    ' c=mix(c,vec3(.99,.96,.90),tooth);',
-    ' c*=1.-dark;',
-    ' c*=.95+.09*gr;',
-    ' float wa=fb(q*.005+4.);',
-    ' c=mix(c,c*vec3(1.05,1.0,.94),wa);',
-    ' c=mix(c,vec3(.98,.94,.87),.10*(1.-uDark));',
+    ' c=mix(vec3(lu),c,.94);',
+    ' c=c*.97+vec3(.02,.018,.012);',
     ' vec4 ed=texture2D(uE,v);',
-    ' c=mix(c,ed.rgb,ed.a*uEdge);',
+    ' c=mix(c,ed.rgb,ed.a*uEdge*.6);',
     ' gl_FragColor=vec4(c,1.);',
     '}'
   ].join('\n');
@@ -1654,14 +1625,7 @@
     o.save();
     o.imageSmoothingEnabled = true; o.imageSmoothingQuality = 'high';
     o.globalCompositeOperation = 'source-over'; o.globalAlpha = 1;
-    var hasF = typeof o.filter !== 'undefined';
-    if (hasF) o.filter = 'saturate(0.95) contrast(0.96) brightness(1.02)';
     o.drawImage(this.work, 0, 0, wk, hk);
-    if (hasF) o.filter = 'none';
-    o.globalAlpha = 0.04; o.globalCompositeOperation = 'source-over'; o.fillStyle = '#f7eddc'; o.fillRect(0, 0, wk, hk);
-    o.globalAlpha = 0.45; o.drawImage(this.grainCv, 0, 0, wk, hk);
-    o.globalCompositeOperation = 'multiply'; o.globalAlpha = 0.5; o.drawImage(this.paper, 0, 0, wk, hk);
-    o.globalCompositeOperation = 'source-over';
     o.globalAlpha = edgeA; o.drawImage(this.edgeCv, 0, 0, wk, hk);
     o.restore();
   };

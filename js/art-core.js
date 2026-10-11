@@ -74,7 +74,14 @@
       s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn);
       hu = mx === r ? (g_ - b) / d + (g_ < b ? 6 : 0) : mx === g_ ? (b - r) / d + 2 : (r - g_) / d + 4; hu /= 6;
     }
-    s *= 0.68; l = l * 0.82 + 0.15;
+    // pull hues toward one cohesive muted palette (terracotta, mustard, sage, dusty blue, mauve) so nothing reads as primary colour
+    if (s > 0.12) {
+      var HUES = [0.035, 0.115, 0.27, 0.45, 0.58, 0.72, 0.93], best = HUES[0], bd = 9;
+      for (var qi = 0; qi < HUES.length; qi++) { var dd = Math.abs(hu - HUES[qi]); dd = Math.min(dd, 1 - dd); if (dd < bd) { bd = dd; best = HUES[qi]; } }
+      var dh = best - hu; if (dh > .5) dh -= 1; if (dh < -.5) dh += 1;
+      hu = (hu + dh * 0.55 + 1) % 1;
+    }
+    s = Math.min(s * 0.62, 0.40); l = l * 0.9 + 0.08;
     function f(p, q, t2) { if (t2 < 0) t2 += 1; if (t2 > 1) t2 -= 1; if (t2 < 1 / 6) return p + (q - p) * 6 * t2; if (t2 < .5) return q; if (t2 < 2 / 3) return p + (q - p) * (2 / 3 - t2) * 6; return p; }
     var q = l < .5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q, R2, G2, B2;
     if (!s) { R2 = G2 = B2 = l; } else { R2 = f(p, q, hu + 1 / 3); G2 = f(p, q, hu); B2 = f(p, q, hu - 1 / 3); }
