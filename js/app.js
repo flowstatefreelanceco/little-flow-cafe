@@ -63,7 +63,7 @@
       plants: {}, points: 0, sessions: 0, minutes: 0, tasksDone: 0, streak: { count: 0, last: '' },
       sounds: snd, master: 0.8, muted: false, sfx: true,
       vibes: { time: 'auto', wx: 'clear' }, calm: false,
-      timer: { focus: 25, break: 5 }, daily: { day: '', picked: -1 }, nudged: false, choice: {}
+      timer: { focus: 25, break: 5 }, daily: { day: '', picked: -1 }, nudged: false, choice: {}, vac: null, big: false
     };
   }
   var S = (function () {
@@ -93,7 +93,7 @@
   }
   function showSaveNote() {
     $('save-note').textContent = storageOk
-      ? 'Your list is saved on this device.'
+      ? ((window.Cafe.Auth && Cafe.Auth.user && Cafe.Auth.user()) ? 'Your list is saved to your account.' : 'Your list is saved on this device. Log in to keep it everywhere.')
       : 'Saving is turned off in this browser, so your list will clear when you close this tab.';
   }
 
@@ -152,18 +152,71 @@
   function sfx(name, arg) { try { if (S.sfx && Audio && Audio.ready()) Audio[name](arg); } catch (e) { /* ignore */ } }
 
   /* ---------- plants ---------- */
+  /* ---------- vacation mode: plants rest and the clock pauses, for up to 10 days ---------- */
+  var MAX_VAC_DAYS = 10, vacOpen = false;
+  function careClock() { return (S && S.vac && S.vac.from) ? S.vac.from : Date.now(); }
+  function vacActive() { return !!(S.vac && S.vac.until > Date.now()); }
+  function endVacation(early) {
+    if (!S.vac) return;
+    var shift = Math.max(0, Math.min(Date.now(), S.vac.until) - S.vac.from);
+    Object.keys(S.plants).forEach(function (id) { if (S.plants[id]) S.plants[id].lastCare = (S.plants[id].lastCare || 0) + shift; });
+    if (S.streak && S.streak.count > 0) S.streak.last = dayKey();
+    S.vac = null; vacOpen = false;
+    save(); syncScene(); renderGarden(); renderVacation();
+    toast(early ? 'Welcome back. Your plants waited for you.' : 'Welcome back. Your plants kept things cozy while you were away.');
+  }
+  function startVacation(days) {
+    days = Math.max(1, Math.min(MAX_VAC_DAYS, parseInt(days, 10) || 1));
+    var now = Date.now();
+    S.vac = { from: now, until: now + days * 864e5 };
+    vacOpen = false;
+    save(); syncScene(); renderGarden(); renderVacation();
+    toast('Vacation mode is on for ' + days + (days === 1 ? ' day' : ' days') + '. Your plants will rest and wait for you.');
+  }
+  function checkVacation() { if (S.vac && S.vac.until <= Date.now()) endVacation(false); }
+  function renderVacation() {
+    var box = $('vac'); if (!box) return;
+    box.innerHTML = '';
+    if (vacActive()) {
+      var until = new Date(S.vac.until);
+      var when = until.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+      box.appendChild(el('p', { class: 'vac-on', text: 'On vacation until ' + when + '. Your plants are resting and nothing will wilt.' }));
+      box.appendChild(el('button', { class: 'btn', type: 'button', text: 'I am back early', onclick: function () { endVacation(true); } }));
+      return;
+    }
+    if (!vacOpen) {
+      box.appendChild(el('button', { class: 'link', type: 'button', text: 'Going away? Turn on vacation mode', onclick: function () { vacOpen = true; renderVacation(); } }));
+      return;
+    }
+    var sel = el('select', { id: 'vac-days', 'aria-label': 'How many days' });
+    for (var d = 1; d <= MAX_VAC_DAYS; d++) sel.appendChild(el('option', { value: String(d), text: d + (d === 1 ? ' day' : ' days') }));
+    sel.value = '3';
+    box.appendChild(el('p', { class: 'fine', text: 'Pause your plants for up to ' + MAX_VAC_DAYS + ' days. They will not get thirsty or sleepy while you are away, and your streak stays safe.' }));
+    box.appendChild(el('div', { class: 'vac-row' }, [
+      sel,
+      el('button', { class: 'btn primary', type: 'button', text: 'Start vacation', onclick: function () { startVacation(sel.value); } }),
+      el('button', { class: 'link', type: 'button', text: 'Cancel', onclick: function () { vacOpen = false; renderVacation(); } })
+    ]));
+  }
+
   function unlockedIds() {
     var out = [], pts = S.points, th = CFG.plantUnlockPoints || [0, 0, 0, 5, 12, 22, 34, 48];
     Pl.UNLOCK_ORDER.forEach(function (id, i) { if (pts >= (th[i] || 0)) out.push(id); });
     return out;
   }
   function ensurePlants() {
-    unlockedIds().forEach(function (id) { if (!S.plants[id]) S.plants[id] = { xp: 0, lastCare: Date.now() }; });
+    unlockedIds().forEach(function (id) { if (!S.plants[id]) S.plants[id] = { xp: 0, lastCare: careClock() }; });
   }
   function healthOf(id) {
     var p = S.plants[id]; if (!p) return 0;
-    var hrs = (Date.now() - p.lastCare) / 36e5;
+    var hrs = Math.max(0, careClock() - p.lastCare) / 36e5;
     return hrs >= (CFG.sleepyAfterHours || 96) ? 2 : (hrs >= (CFG.thirstyAfterHours || 36) ? 1 : 0);
+  }
+  // a kind of plant is open once you have enough points, or if it is what that spot started with, or already chosen
+  function varietyOpen(vid, slotId) {
+    if (S.points >= Pl.unlockAt(vid)) return true;
+    var s = Pl.SLOTS[slotId];
+    return Pl.resolve(s, null).id === vid || (S.choice[slotId] === vid);
   }
   function stageOf(id) {
     var p = S.plants[id], xp = p ? p.xp : 0, st = 0;
@@ -188,7 +241,7 @@
       if (Math.random() < 0.4) pick = ids[Math.floor(Math.random() * ids.length)];
     }
     var was = healthOf(pick), before = stageOf(pick), p = S.plants[pick];
-    p.xp += 1; p.lastCare = Date.now();
+    p.xp += 1; p.lastCare = careClock();
     var grew = stageOf(pick) > before;
     scene && scene.sparkle(pick, grew || was === 2);
     sfx('sparkle');
@@ -201,6 +254,7 @@
     var before = unlockedIds();
     S.points += n;
     ensurePlants();
+    setTimeout(function () { renderJar(n); }, 0);
     var now = unlockedIds();
     now.forEach(function (id) {
       if (before.indexOf(id) < 0) {
@@ -336,7 +390,7 @@
         try { if (S.sfx && Audio.ready()) Audio.chime(); } catch (e) { /* ignore */ }
         toast('Focus time done. ' + mins + ' minutes in the cafe. Nice.', { ms: 7000, action: { label: 'Take a break', fn: function () { setMode('break'); startTimer(); } } });
         // water thirsty plants as a thank you
-        unlockedIds().forEach(function (id) { if (healthOf(id) === 1) { S.plants[id].lastCare = Date.now(); } });
+        unlockedIds().forEach(function (id) { if (healthOf(id) === 1) { S.plants[id].lastCare = careClock(); } });
         carePlant();
         nudgeJoin();
       } else toast('That was a short one, no worries. Try again when you are ready.');
@@ -520,7 +574,11 @@
       var h = healthOf(id), st = stageOf(id), s = Pl.SLOTS[id];
       var cur = Pl.resolve(s, S.choice[id]).id;
       var sel = el('select', { class: 'plant-pick', 'aria-label': 'Plant type for plant ' + (ids.indexOf(id) + 1) });
-      Pl.varietiesFor(s).forEach(function (v) { var o = el('option', { value: v.id, text: v.label }); if (v.id === cur) o.selected = true; sel.appendChild(o); });
+      Pl.varietiesFor(s).forEach(function (v) {
+        var open = varietyOpen(v.id, id), o = el('option', { value: v.id, text: open ? v.label : v.label + ' (unlocks at ' + Pl.unlockAt(v.id) + ')' });
+        if (!open) o.disabled = true;
+        if (v.id === cur) o.selected = true; sel.appendChild(o);
+      });
       sel.addEventListener('change', function () {
         S.choice[id] = sel.value; syncScene(); save(); sfx('pop');
         if (scene) scene.sparkle(id, false);
@@ -546,7 +604,7 @@
   }
   function waterOne(id, delay) {
     setTimeout(function () { scene && scene.water(id); sfx('water'); }, delay || 0);
-    S.plants[id].lastCare = Date.now();
+    S.plants[id].lastCare = careClock();
   }
   function tapPlant(id) {
     var h = healthOf(id), name = pname(id);
@@ -554,6 +612,116 @@
     else if (h === 2) toast('Your ' + name.toLowerCase() + ' is napping. Finishing a task will wake it up.');
     else { scene && scene.sparkle(id, false); sfx('pop'); toast('Your ' + name.toLowerCase() + ' is doing great.'); }
   }
+
+
+  /* ---------- star jar: every point is a colorful star ---------- */
+  var STAR_COLS = ['#ff6a9a', '#ffb52e', '#7ac96b', '#5aa9e6', '#a77be0', '#ff8a4a', '#3fc7b0', '#f25f5c'];
+  var JAR_MAX = 150, jarAnim = 0, jarShown = -1;
+  function jarRand(i, k) { var x = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return x - Math.floor(x); }
+  function starPos(i, n) {
+    var big = (n || 0) <= 64, cols = big ? 8 : 11, sp = big ? 18 : 14, rh = big ? 16 : 13, x0 = big ? 48 : 40;
+    var r = Math.floor(i / cols), c = i % cols;
+    return { x: x0 + c * sp + (r % 2 ? sp / 2 : 0) + (jarRand(i, 1) - 0.5) * 4, y: 212 - r * rh + (jarRand(i, 2) - 0.5) * 3, rot: jarRand(i, 3) * 1.2, col: STAR_COLS[i % STAR_COLS.length], rad: big ? 9.5 : 7.2 };
+  }
+  function drawStar(g, x, y, r, rot, col) {
+    g.beginPath();
+    for (var k = 0; k < 10; k++) { var rr = k % 2 ? r * 0.45 : r, an = -Math.PI / 2 + rot + k * Math.PI / 5; g.lineTo(x + Math.cos(an) * rr, y + Math.sin(an) * rr); }
+    g.closePath(); g.fillStyle = col; g.fill(); g.lineWidth = 0.8; g.strokeStyle = 'rgba(120,70,60,0.35)'; g.stroke();
+    g.beginPath(); g.arc(x - r * 0.18, y - r * 0.22, r * 0.18, 0, 6.2832); g.fillStyle = 'rgba(255,255,255,0.55)'; g.fill();
+  }
+  function jarPath(g) {
+    g.beginPath(); g.moveTo(54, 52); g.lineTo(166, 52); g.quadraticCurveTo(166, 66, 182, 78); g.quadraticCurveTo(190, 86, 190, 104);
+    g.lineTo(190, 206); g.quadraticCurveTo(190, 228, 168, 228); g.lineTo(52, 228); g.quadraticCurveTo(30, 228, 30, 206);
+    g.lineTo(30, 104); g.quadraticCurveTo(30, 86, 38, 78); g.quadraticCurveTo(54, 66, 54, 52); g.closePath();
+  }
+  function paintJar(n, fall) {
+    var cv = $('jar'); if (!cv) return; var g = cv.getContext('2d'); g.clearRect(0, 0, cv.width, cv.height);
+    // back of the glass
+    jarPath(g); g.fillStyle = 'rgba(214,236,242,0.35)'; g.fill();
+    g.save(); jarPath(g); g.clip();
+    var shown = Math.min(n, JAR_MAX);
+    for (var i = 0; i < shown; i++) { var p = starPos(i, shown); drawStar(g, p.x, p.y, p.rad, p.rot, p.col); }
+    if (fall) { drawStar(g, fall.x, fall.y, fall.rad, fall.rot, fall.col); }
+    g.restore();
+    // glass rim, shine and lid
+    jarPath(g); g.lineWidth = 2.2; g.strokeStyle = 'rgba(120,170,185,0.75)'; g.stroke();
+    g.beginPath(); g.moveTo(44, 110); g.quadraticCurveTo(40, 160, 44, 205); g.lineWidth = 4; g.lineCap = 'round'; g.strokeStyle = 'rgba(255,255,255,0.7)'; g.stroke();
+    g.beginPath(); g.moveTo(178, 120); g.lineTo(178, 150); g.lineWidth = 3; g.strokeStyle = 'rgba(255,255,255,0.5)'; g.stroke();
+    g.beginPath(); var rx = 46, ry = 22, rw = 128, rh = 30, rr = 9;
+    g.moveTo(rx + rr, ry); g.arcTo(rx + rw, ry, rx + rw, ry + rh, rr); g.arcTo(rx + rw, ry + rh, rx, ry + rh, rr); g.arcTo(rx, ry + rh, rx, ry, rr); g.arcTo(rx, ry, rx + rw, ry, rr); g.closePath();
+    g.fillStyle = '#d9a566'; g.fill(); g.lineWidth = 1.6; g.strokeStyle = '#a8743e'; g.stroke();
+    g.fillStyle = 'rgba(255,240,205,0.45)'; g.fillRect(rx + 8, ry + 5, rw - 16, 3);
+    g.strokeStyle = 'rgba(140,90,45,0.4)'; g.lineWidth = 1; [14, 24].forEach(function (yy) { g.beginPath(); g.moveTo(rx + 12, ry + yy); g.lineTo(rx + rw - 30, ry + yy); g.stroke(); });
+    // a little heart tag
+    g.fillStyle = '#ff7a9a'; g.beginPath(); g.moveTo(110, ry + 24); g.bezierCurveTo(96, ry + 12, 104, ry + 4, 110, ry + 11); g.bezierCurveTo(116, ry + 4, 124, ry + 12, 110, ry + 24); g.fill();
+  }
+  function renderJar(dropCount) {
+    var n = S.points;
+    var txt = $('jar-text');
+    if (txt) {
+      var ids = unlockedIds().length, th = CFG.plantUnlockPoints || [];
+      txt.textContent = n === 0 ? 'Finish a task or a focus session to drop in your first star.'
+        : n + (n === 1 ? ' star' : ' stars') + (ids < Pl.UNLOCK_ORDER.length ? '. ' + Math.max(0, th[ids] - n) + ' more until a new plant moves in.' : '. The whole garden has moved in.');
+    }
+    if (dropCount > 0 && n > 0 && !(S.calm)) {
+      var token = ++jarAnim, start = Date.now(), tgt = starPos(Math.min(n - 1, JAR_MAX - 1), Math.min(n, JAR_MAX)), col = tgt.col, base = Math.max(0, n - 1);
+      (function step() {
+        if (token !== jarAnim) return;
+        var tt = Math.min(1, (Date.now() - start) / 700), e = tt < 1 ? tt * tt : 1;
+        var y = -10 + (tgt.y + 10) * e - (tt > 0.85 ? Math.sin((tt - 0.85) / 0.15 * Math.PI) * 6 : 0);
+        paintJar(base, { x: tgt.x, y: y, rot: tgt.rot + (1 - tt) * 3, col: col, rad: tgt.rad });
+        if (tt < 1) requestAnimationFrame(step); else paintJar(n);
+      })();
+    } else paintJar(n);
+    jarShown = n;
+  }
+
+  /* ---------- greenhouse: every plant, plus the collection to unlock ---------- */
+  function houseCanvas(w, h) { return el('canvas', { width: String(w), height: String(h), class: 'house-cv', 'aria-hidden': 'true' }); }
+  function renderGreenhouse() {
+    var ids = unlockedIds(), th = CFG.plantUnlockPoints || [];
+    var kinds = Pl.VARIETIES.filter(function (v) { return S.points >= Pl.unlockAt(v.id); }).length;
+    $('house-lead').textContent = ids.length + ' of ' + Pl.SLOTS.length + ' plants have moved in, and you have found ' + kinds + ' of ' + Pl.VARIETIES.length + ' kinds. Finished tasks count 1 point, focus sessions count 2.';
+    var grid = $('house-grid'); grid.innerHTML = '';
+    var draws = [];
+    Pl.UNLOCK_ORDER.forEach(function (id, i) {
+      var s = Pl.SLOTS[id], open = ids.indexOf(id) >= 0, cv = houseCanvas(140, 150);
+      var card = el('div', { class: 'house-card' + (open ? '' : ' locked') }, [cv]);
+      if (open) {
+        var rv = Pl.resolve(s, S.choice[id]), hh = healthOf(id), st = stageOf(id);
+        card.appendChild(el('b', { text: rv.label }));
+        card.appendChild(el('small', { text: STAGE_NAMES[st] + ', ' + HEALTH_NAMES[hh].toLowerCase() }));
+        if (hh === 1) card.appendChild(el('button', { class: 'btn', type: 'button', text: 'Give water', onclick: function () { waterOne(id); toast('Your ' + rv.label.toLowerCase() + ' says thank you.'); syncScene(); renderGarden(); save(); renderGreenhouse(); } }));
+        draws.push(function () { Pl.drawSample(cv, s, rv.id, st, hh, 0, false); });
+      } else {
+        card.appendChild(el('b', { text: 'A new plant' }));
+        card.appendChild(el('small', { text: 'Moves in at ' + (th[i] || 0) + ' points' }));
+        draws.push(function () { Pl.drawSample(cv, s, Pl.resolve(s, null).id, 3, 0, 0, true); });
+      }
+      grid.appendChild(card);
+    });
+    var coll = $('house-coll'); coll.innerHTML = '';
+    $('house-coll-note').textContent = 'New kinds unlock as your points grow. Swap any plant to an unlocked kind from the Your plants list.';
+    Pl.VARIETIES.slice().sort(function (a, b) { return Pl.unlockAt(a.id) - Pl.unlockAt(b.id); }).forEach(function (v) {
+      var open = S.points >= Pl.unlockAt(v.id), cv = houseCanvas(140, 150);
+      var tmpl = null;
+      coll.appendChild(el('div', { class: 'house-card' + (open ? '' : ' locked') }, [cv,
+        el('b', { text: open ? v.label : '???' }),
+        el('small', { text: open ? 'Unlocked' : 'Unlocks at ' + Pl.unlockAt(v.id) + ' points' })]));
+      draws.push(function () { Pl.drawSample(cv, tmpl, v.id, 3, 0, 0, !open); });
+    });
+    draws.forEach(function (f) { try { f(); } catch (e) { /* a missing sprite should not break the list */ } });
+  }
+  function openGreenhouse() { renderGreenhouse(); openModal('modal-house'); }
+  function applyBig() {
+    var m = document.querySelector('.layout'); if (!m) return;
+    m.classList.toggle('big', !!S.big);
+    var b = $('btn-big'); if (b) { b.setAttribute('aria-pressed', String(!!S.big)); b.textContent = S.big ? 'Smaller view' : 'Big view'; }
+  }
+  $('btn-big').addEventListener('click', function () { S.big = !S.big; applyBig(); save(); });
+  applyBig();
+  $('btn-house').addEventListener('click', openGreenhouse);
+  $('open-house').addEventListener('click', openGreenhouse);
   $('water-all').addEventListener('click', function () {
     var ids = unlockedIds(), thirsty = ids.filter(function (id) { return healthOf(id) === 1; }), asleep = ids.filter(function (id) { return healthOf(id) === 2; });
     thirsty.forEach(function (id, i) { waterOne(id, i * 450); });
@@ -921,7 +1089,7 @@
     $('brand-link').href = CFG.brandUrl || '#'; $('brand-link').textContent = CFG.brandName || 'Flow State Freelance Co.';
     try { scene = Art.createScene(canvas); } catch (e) { scene = null; }
     ensurePlants();
-    renderVibes(); renderTimerControls(); renderTimerFace(); renderTasks(); renderSounds(); renderGarden(); setupSignup(); setupAuth(); showSaveNote();
+    renderVibes(); renderTimerControls(); renderTimerFace(); renderTasks(); renderSounds(); renderGarden(); setupSignup(); setupAuth(); showSaveNote(); checkVacation(); renderVacation(); renderJar(0); setInterval(checkVacation, 60000);
     syncScene();
     if (scene) requestAnimationFrame(loop);
     setInterval(function () { if (S.vibes.time === 'auto') syncScene(); renderGarden(); checkDay(); }, 60000);

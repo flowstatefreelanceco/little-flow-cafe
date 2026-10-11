@@ -698,7 +698,7 @@
     if (inRect(x, y, cr2)) return { type: 'counter', id: 'counter', rect: cr2 };
     var sgr = { x: this.signPos.x - 10, y: this.signPos.y - 28, w: 20, h: 30 };
     if (inRect(x, y, sgr)) return { type: 'sign', id: 'sign', rect: sgr };
-    var nook = { x: this.nook.x - 24, y: this.nook.y - 44, w: 48, h: 48 };
+    var nook = { x: this.nook.x - 26, y: this.nook.y - 58, w: 52, h: 62 };
     if (inRect(x, y, nook)) return { type: 'cards', id: 'cards', rect: nook };
     var fire = wallRect('L', 91, 123, 4, 38);
     if (inRect(x, y, fire)) return { type: 'fire', id: 'fire', rect: fire };
@@ -1116,6 +1116,26 @@
       R(cx, cy - 4, 6, 8, '#4f3a6e'); R(cx, cy - 4, 6, 1, '#f5d98a'); R(cx, cy + 3, 6, 1, '#f5d98a'); R(cx, cy - 4, 1, 8, '#f5d98a'); R(cx + 5, cy - 4, 1, 8, '#f5d98a');
       P(cx + 3, cy, '#f5d98a'); P(cx + 2, cy, '#f5d98a'); P(cx + 3, cy - 1, '#f5d98a'); P(cx + 3, cy + 1, '#f5d98a');
     });
+    // a cutesy wooden sign on a little post
+    (function () {
+      var px = x + 1, base = topY - 6, py = topY - 30, sway = Math.sin(t * 1.1) * 0.025;
+      g.save();
+      R(px - 1, py + 6, 3, base - py - 6, '#8a5a2e'); R(px, py + 6, 1, base - py - 6, '#a8743e');
+      g.translate(px, py + 6); g.rotate(sway); g.translate(-px, -(py + 6));
+      g.fillStyle = 'rgba(60,30,10,0.18)'; g.beginPath(); g.ellipse(px, py + 14, 20, 2, 0, 0, 6.2832); g.fill();
+      g.beginPath(); g.moveTo(px - 19, py - 1); g.lineTo(px + 19, py - 1);
+      g.arcTo(px + 22, py - 1, px + 22, py + 2, 3); g.lineTo(px + 22, py + 11); g.arcTo(px + 22, py + 14, px + 19, py + 14, 3);
+      g.lineTo(px - 19, py + 14); g.arcTo(px - 22, py + 14, px - 22, py + 11, 3); g.lineTo(px - 22, py + 2); g.arcTo(px - 22, py - 1, px - 19, py - 1, 3); g.closePath();
+      g.fillStyle = '#d9a566'; g.fill(); g.lineWidth = 0.8; g.strokeStyle = '#9a6a38'; g.stroke();
+      g.fillStyle = 'rgba(255,240,205,0.4)'; g.fillRect(px - 19, py, 38, 1.2);
+      g.strokeStyle = 'rgba(140,90,45,0.35)'; g.lineWidth = 0.5;
+      [[-17, 3, -8], [4, 11, 16], [-12, 12, -2]].forEach(function (w) { g.beginPath(); g.moveTo(px + w[0], py + w[1]); g.lineTo(px + w[2], py + w[1]); g.stroke(); });
+      Ec2(px - 19, py + 6.5, 1, '#8a5a2e'); Ec2(px + 19, py + 6.5, 1, '#8a5a2e');
+      g.font = '700 7px Fredoka, Nunito, ui-rounded, system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = '#6a3f1e'; g.fillText('pick a card', px, py + 7.2);
+      g.restore();
+      function Ec2(ex, ey, r, col) { g.fillStyle = col; g.beginPath(); g.arc(ex, ey, r, 0, 6.2832); g.fill(); }
+    })();
     if (Math.sin(t * 2.2) > 0.85) { P(x + 12, topY - 16, '#ffffff'); P(x + 11, topY - 15, '#ffffff'); P(x + 13, topY - 15, '#ffffff'); }
     if (Math.random() < 0.02) this.emit('spark', x + 13, topY - 14, 1, { spread: 4, speed: 8, life: 1 });
   };

@@ -382,8 +382,20 @@
     { id: 'spider', type: 'spider', label: 'Spider plant' },
     { id: 'morning', type: 'morning', label: 'Morning glory', bloom: '#8a5ae0' },
     { id: 'boba', type: 'boba', label: 'Boba buddy' },
-    { id: 'sushi', type: 'sushi', label: 'Sushi pal' }
+    { id: 'sushi', type: 'sushi', label: 'Sushi pal' },
+    { id: 'poppy', type: 'flower', label: 'Poppies', bloom: '#ff4a3a', center: '#2a1a1a' },
+    { id: 'forgetmenot', type: 'flower', label: 'Forget me nots', bloom: '#8ab8ff', center: '#fff6b0' },
+    { id: 'lavender', type: 'flower', label: 'Lavender blooms', bloom: '#b49af0', center: '#f5e27a' },
+    { id: 'sunflower', type: 'flower', label: 'Sunflowers', bloom: '#ffd23a', center: '#6a3a1a' },
+    { id: 'hydrangeaW', type: 'hydrangea', label: 'White hydrangea', bloom: '#f4f4ff' },
+    { id: 'hydrangeaL', type: 'hydrangea', label: 'Lilac hydrangea', bloom: '#b79af0' },
+    { id: 'fittoniaP', type: 'fittonia', label: 'Pink nerve plant', bloom: '#ff8ab0' }
   ];
+  // total points (tasks 1, focus sessions 2) needed to unlock each kind of plant. Missing = open from the start.
+  var UNLOCK_AT = { barrel: 6, aloe: 9, spider: 12, rubber: 15, calla: 18, oxalis: 21, fittonia: 24, marigold: 27, poppy: 30,
+    hydrangea: 34, hydrangeaP: 38, forgetmenot: 42, lavender: 46, sunflower: 50, hydrangeaW: 55, hydrangeaL: 60, morning: 65,
+    fittoniaP: 72, boba: 80, sushi: 95 };
+  function unlockAt(id) { return UNLOCK_AT[id] || 0; }
   var VBY = {};
   VARIETIES.forEach(function (v) { VBY[v.id] = v; });
   var HANG_OK = { pothos: 1, fern: 1, spider: 1, morning: 1 };
@@ -430,7 +442,7 @@
     var st = C.clamp(p.stage | 0, 0, 3), h = p.health | 0;
     var dr = h === 0 ? 0 : (h === 1 ? 0.45 : 1);
     var rv = resolve(slot, p.variety);
-    var hang = slot.kind === 'hang', sc = slot.kind === 'floor' ? FLOOR_SCALE : 1;
+    var hang = slot.kind === 'hang', sc = slot.scale || (slot.kind === 'floor' ? FLOOR_SCALE : 1);
     var LW = 72, LH = hang ? 124 : 74, ox = 36, oy = hang ? 90 : 62;
     var tq = Math.floor(t * 8);
     var key = [slot.id, rv.id, st, h, tq].join('|');
@@ -463,7 +475,24 @@
     g.imageSmoothingEnabled = false;
   }
 
+  // draw one plant on its own little canvas (for the greenhouse). Slot can be a real slot or null for a sample.
+  var sampleN = 0, sampleIds = {};
+  function drawSample(canvas, slot, varietyId, stage, health, t, locked) {
+    var g = canvas.getContext('2d'), W = canvas.width, H = canvas.height, v = VBY[varietyId] || VARIETIES[0];
+    var hang = HANG_OK[v.type] ? true : (slot && slot.kind === 'hang');
+    var key = (slot ? 's' + slot.id : 'v' + varietyId);
+    if (sampleIds[key] === undefined) sampleIds[key] = 400 + sampleN++;
+    var sl = { id: sampleIds[key], kind: hang ? 'hang' : 'floor', x: W / 2, y: hang ? Math.round(H * 0.54) : H - 26, scale: 1.9, type: v.type,
+      pot: (slot && slot.pot) || '#d9a02a', bloom: v.bloom, center: v.center, name: v.label };
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H);
+    var prev = C.ctx(); C.setCtx(g);
+    drawPlant(sl, { stage: stage, health: health, variety: v.id }, t || 0);
+    C.setCtx(prev);
+    if (locked) { g.save(); g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(200,184,150,0.92)'; g.fillRect(0, 0, W, H); g.restore(); }
+  }
+
   Cafe.Plants = {
+    unlockAt: unlockAt, drawSample: drawSample,
     SLOTS: SLOTS, UNLOCK_ORDER: UNLOCK_ORDER, VARIETIES: VARIETIES, varietiesFor: varietiesFor, defaultVariety: defaultVariety, resolve: resolve, THRESHOLDS: [0, 3, 10, 22],
     drawPlant: drawPlant, rectFor: rectFor, drawPot: drawPot
   };
