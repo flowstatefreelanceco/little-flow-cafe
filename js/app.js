@@ -63,7 +63,7 @@
       plants: {}, points: 0, sessions: 0, minutes: 0, tasksDone: 0, streak: { count: 0, last: '' },
       sounds: snd, master: 0.8, muted: false, sfx: true,
       vibes: { time: 'auto', wx: 'clear' }, calm: false,
-      timer: { focus: 25, break: 5 }, daily: { day: '', picked: -1 }, nudged: false, choice: {}, vac: null, big: false
+      timer: { focus: 25, break: 5 }, daily: { day: '', picked: -1 }, nudged: false, choice: {}, vac: null, big: false, lights: {}
     };
   }
   var S = (function () {
@@ -288,7 +288,7 @@
     var h = phaseHour();
     document.documentElement.setAttribute('data-phase', uiPhase(h));
     scene.setState({
-      hour: h, weather: S.vibes.wx, fire: S.fireLit !== false, calm: !!S.calm,
+      hour: h, weather: S.vibes.wx, fire: S.fireLit !== false, calm: !!S.calm, lights: S.lights || {},
       mode: timerState.running ? (timerState.mode === 'break' ? 'break' : 'focus') : 'idle',
       plants: plantMap(), player: S.char
     });
@@ -561,6 +561,13 @@
   $('btn-mute').addEventListener('click', function () { S.muted = !S.muted; renderMute(); applyAllSound(); save(); });
   $('master-vol').addEventListener('input', function () { S.master = this.value / 100; applyAllSound(); save(); });
   $('sfx').addEventListener('change', function () { S.sfx = this.checked; applyAllSound(); save(); });
+  function toggleLight(h) {
+    S.lights = S.lights || {};
+    var on = S.lights[h.id] === false;       // it was off, so this tap turns it on
+    S.lights[h.id] = on;
+    syncScene(); save(); sfx('pop');
+    toast(on ? (h.name + ' is on.') : (h.name + ' is off.'));
+  }
   function toggleFire() {
     S.fireLit = S.fireLit === false; syncScene(); save();
     toast(S.fireLit ? 'The fire is lit.' : 'The fire is resting.');
@@ -917,6 +924,7 @@
       case 'barista': return 'Pia, your barista';
       case 'counter': return 'Fresh from the oven';
       case 'sign': return 'Cafe menu';
+      case 'light': return h.name + (S.lights && S.lights[h.id] === false ? ': tap to turn on' : ': tap to turn off');
       default: return '';
     }
   }
@@ -947,6 +955,7 @@
       case 'pebble': scene.emit('heart', h.rect.x + 12, h.rect.y, 3, { spread: 6 }); sfx('purr'); break;
       case 'cards': openCards(); break;
       case 'fire': toggleFire(); break;
+      case 'light': toggleLight(h); break;
       case 'clock': var d = new Date(); toast('It is ' + (d.getHours() % 12 || 12) + ':' + pad(d.getMinutes()) + (d.getHours() < 12 ? ' am' : ' pm') + ' where you are.'); break;
       case 'window':
         var order = ['clear', 'cloudy', 'rain', 'snow'], nx = order[(order.indexOf(S.vibes.wx) + 1) % order.length];
