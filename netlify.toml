@@ -1,7 +1,6 @@
-# Little flow cafe: a plain static site, no build step.
 [build]
-  command = "echo 'No build needed'"
-  publish = "."
+  command = "mkdir -p dist && cp -r index.html styles.css js dist/"
+  publish = "dist"
 
 [functions]
   directory = "netlify/functions"

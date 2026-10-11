@@ -139,7 +139,7 @@
         if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
         j = (ny * w + nx) * 4;
         if (d[j + 3] > 200) {
-          out[i] = d[j] * 0.42 + 16; out[i + 1] = d[j + 1] * 0.36 + 8; out[i + 2] = d[j + 2] * 0.42 + 18; out[i + 3] = 255;
+          out[i] = d[j] * 0.7 + 12; out[i + 1] = d[j + 1] * 0.62 + 8; out[i + 2] = d[j + 2] * 0.66 + 14; out[i + 3] = 120;
           break;
         }
       }

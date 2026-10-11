@@ -547,8 +547,10 @@
   /* ---------- the scene ---------- */
   function Scene(canvas) {
     this.canvas = canvas;
-    canvas.width = W; canvas.height = H;
-    this.ctx = canvas.getContext('2d');
+    canvas.width = W * 2; canvas.height = H * 2;
+    this.octx = canvas.getContext('2d');
+    this.work = C.makeCanvas(W, H);
+    this.ctx = this.work.getContext('2d');
     this.state = { hour: 12, weather: 'clear', fire: true, mode: 'idle', plants: {}, player: Pe.defaultSpec(), calm: false };
     this.time = 0; this.last = null;
     this.hover = null;
@@ -712,14 +714,18 @@
 
   /* ---------- drawing ---------- */
   Scene.prototype.drawBackground = function (g) {
-    var sky = skyAt(this.state.hour), i;
+    var sky = skyAt(this.state.hour);
     this.sky = sky;
-    var a = mix(sky.top, '#e0792e', 0.62), b = mix(sky.bot, '#f0a24a', 0.6);
-    if (sky.ta > 0.3) { a = mix(sky.top, '#4a2a6a', 0.55); b = mix(sky.bot, '#6a3a78', 0.5); }
-    else if (sky.ta > 0.12) { a = mix(a, '#a8483a', 0.35); b = mix(b, '#d9783a', 0.3); }
-    var bands = 24, bh = Math.ceil(H / bands);
-    for (i = 0; i < bands; i++) { g.fillStyle = mix(a, b, i / (bands - 1)); g.fillRect(0, i * bh, W, bh); }
-    g.drawImage(this.bgPattern, 0, 0);
+    var night = clamp(sky.ta * 1.7, 0, 0.85);
+    var paper = mix('#f7ecd6', mix(sky.top, '#3a3558', 0.5), night);
+    g.fillStyle = paper; g.fillRect(0, 0, W, H);
+    // loose watercolor washes behind the room
+    var washes = [[60, 50, 150, '#e9a07a'], [420, 60, 140, '#8fc4c8'], [40, 300, 150, '#a8c88a'], [440, 310, 150, '#f0c46a'], [240, 340, 120, '#d98aa0'], [250, 20, 120, '#b8a6d8']];
+    washes.forEach(function (w) {
+      var gr = g.createRadialGradient(w[0], w[1], 0, w[0], w[1], w[2]);
+      gr.addColorStop(0, w[3] + (night > 0.4 ? '40' : '88')); gr.addColorStop(1, w[3] + '00');
+      g.fillStyle = gr; g.fillRect(w[0] - w[2], w[1] - w[2], w[2] * 2, w[2] * 2);
+    });
   };
 
   Scene.prototype.drawSkyTo = function (t) {
@@ -1326,21 +1332,56 @@
     strip(iso(0, 0), iso(N, 0), -d * 0.9, d * 0.5);
     strip(iso(0, 0), iso(0, N), d * 0.9, d * 0.5);
   };
+  /* the watercolor pass: soften the pixels into the paper, add pigment bleed, grain and a loose paper edge */
+  Scene.prototype.makePaper = function () {
+    var cv = C.makeCanvas(W * 2, H * 2), c = cv.getContext('2d'), r = rng(77), i;
+    for (i = 0; i < 70; i++) {
+      var x = r() * W * 2, y = r() * H * 2, rad = 40 + r() * 140, warm = r() < 0.5;
+      var gr = c.createRadialGradient(x, y, 0, x, y, rad);
+      gr.addColorStop(0, warm ? 'rgba(255,214,150,0.07)' : 'rgba(120,150,190,0.05)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      c.fillStyle = gr; c.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+    }
+    for (i = 0; i < 26000; i++) {
+      c.fillStyle = r() < 0.5 ? 'rgba(120,84,50,' + (0.02 + r() * 0.05).toFixed(3) + ')' : 'rgba(255,255,250,' + (0.03 + r() * 0.07).toFixed(3) + ')';
+      c.fillRect(Math.floor(r() * W * 2), Math.floor(r() * H * 2), 1 + (r() < 0.2 ? 1 : 0), 1);
+    }
+    c.lineWidth = 1;
+    for (i = 0; i < 900; i++) {
+      var fx = r() * W * 2, fy = r() * H * 2, a = r() * 6.28, l = 3 + r() * 8;
+      c.strokeStyle = 'rgba(150,110,70,' + (0.03 + r() * 0.04).toFixed(3) + ')';
+      c.beginPath(); c.moveTo(fx, fy); c.lineTo(fx + Math.cos(a) * l, fy + Math.sin(a) * l); c.stroke();
+    }
+    // loose paper edge lives on its own canvas so it can fade at night
+    var ec = C.makeCanvas(W * 2, H * 2), e = ec.getContext('2d'), ew = 26, g1;
+    function band(x0, y0, x1, y1, rx, ry, rw, rh) {
+      g1 = e.createLinearGradient(x0, y0, x1, y1); g1.addColorStop(0, 'rgba(250,242,226,0.95)'); g1.addColorStop(1, 'rgba(250,242,226,0)');
+      e.fillStyle = g1; e.fillRect(rx, ry, rw, rh);
+    }
+    band(0, 0, 0, ew, 0, 0, W * 2, ew); band(0, H * 2, 0, H * 2 - ew, 0, H * 2 - ew, W * 2, ew);
+    band(0, 0, ew, 0, 0, 0, ew, H * 2); band(W * 2, 0, W * 2 - ew, 0, W * 2 - ew, 0, ew, H * 2);
+    this.edgeCv = ec;
+    return cv;
+  };
   Scene.prototype.drawFinish = function (g) {
-    if (!this.bloomCv) { this.bloomCv = C.makeCanvas(120, 90); }
-    var bc = this.bloomCv, bg = bc.getContext('2d');
-    bg.imageSmoothingEnabled = true;
-    bg.clearRect(0, 0, 120, 90); bg.drawImage(g.canvas, 0, 0, 120, 90);
-    g.save();
-    g.imageSmoothingEnabled = true;
-    g.globalCompositeOperation = 'screen'; g.globalAlpha = 0.16;
-    g.drawImage(bc, 0, 0, W, H);
-    g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
-    var vg = g.createRadialGradient(W / 2, H * 0.52, H * 0.34, W / 2, H * 0.52, H * 0.82);
-    vg.addColorStop(0, 'rgba(60,24,10,0)'); vg.addColorStop(1, 'rgba(60,24,10,0.30)');
-    g.fillStyle = vg; g.fillRect(0, 0, W, H);
-    g.restore();
-    C.setCtx(g);
+    var o = this.octx, w2 = W * 2, h2 = H * 2;
+    if (!this.paper) { this.paper = this.makePaper(); this.softCv = C.makeCanvas(W / 2, H / 2); this.midCv = C.makeCanvas(W, H); }
+    var sg = this.softCv.getContext('2d');
+    sg.imageSmoothingEnabled = true; sg.clearRect(0, 0, W / 2, H / 2); sg.drawImage(this.work, 0, 0, W / 2, H / 2);
+    o.save();
+    o.imageSmoothingEnabled = true; o.imageSmoothingQuality = 'high';
+    o.globalCompositeOperation = 'source-over'; o.globalAlpha = 1;
+    o.drawImage(this.work, 0, 0, w2, h2);
+    // pigment bleeding past the lines
+    o.globalAlpha = 0.3; o.drawImage(this.softCv, 0, 0, w2, h2);
+    // richer, juicier pigment
+    o.globalAlpha = 0.42; o.globalCompositeOperation = 'overlay'; o.drawImage(this.work, 0, 0, w2, h2);
+    // a gentle wash of light so shadows stay see-through, like thin paint
+    o.globalAlpha = 0.07; o.globalCompositeOperation = 'screen'; o.drawImage(this.softCv, 0, 0, w2, h2);
+    o.globalAlpha = 0.12; o.globalCompositeOperation = 'soft-light'; o.fillStyle = '#fff1d6'; o.fillRect(0, 0, w2, h2);
+    o.globalCompositeOperation = 'source-over'; o.globalAlpha = 1;
+    o.drawImage(this.paper, 0, 0);
+    o.globalAlpha = 1 - 0.8 * clamp((this.sky ? this.sky.ta : 0) * 1.7, 0, 1); o.drawImage(this.edgeCv, 0, 0);
+    o.restore();
   };
 
   Scene.prototype.frame = function (nowMs) {

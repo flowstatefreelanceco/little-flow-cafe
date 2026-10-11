@@ -5,7 +5,7 @@ A free, cozy coworking and body doubling web app. Plain HTML, CSS and JavaScript
 ## Put it online (GitHub and Netlify)
 
 1. Make a new GitHub repo (for example `little-flow-cafe`) and upload everything in this folder to its main branch. Keep `index.html` and `netlify.toml` at the top level of the repo.
-2. In Netlify, choose Add new site, then Import an existing project, pick that repo. Leave the build command empty and the publish directory as `.` (the included `netlify.toml` already says this).
+2. In Netlify, choose Add new site, then Import an existing project, pick that repo. You do not need to change any settings. The included `netlify.toml` sets the build command and publish folder (`dist`) for you.
 3. Deploy. From now on every push to GitHub updates the site by itself.
 
 If the repo is already connected to Netlify, just commit the files and push.

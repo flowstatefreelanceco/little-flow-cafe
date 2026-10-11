@@ -417,7 +417,7 @@
         nx = x + dirs[k][0]; ny = y + dirs[k][1];
         if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
         j = (ny * w + nx) * 4;
-        if (d[j + 3] > 200) { out[i] = d[j] * 0.45 + 10; out[i + 1] = d[j + 1] * 0.4 + 8; out[i + 2] = d[j + 2] * 0.45 + 14; out[i + 3] = 255; break; }
+        if (d[j + 3] > 200) { out[i] = d[j] * 0.68 + 10; out[i + 1] = d[j + 1] * 0.6 + 8; out[i + 2] = d[j + 2] * 0.66 + 12; out[i + 3] = 125; break; }
       }
     }
     im.data.set(out);
