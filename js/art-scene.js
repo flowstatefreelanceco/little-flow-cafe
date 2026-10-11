@@ -57,7 +57,7 @@
   var TABLES = [
     { id: 'back', gx: 9.4, gy: 7.8, rx: 46, R: 58, ang: [222, 270, 318], cloth: 'runner',
       items: [{ k: 'cup', ox: -28, oy: 9 }, { k: 'book', ox: -8, oy: 14 }, { k: 'pastry', ox: 12, oy: 15 }, { k: 'cat', ox: 30, oy: 8 }] },
-    { id: 'fl', gx: 2.6, gy: 10.4, rx: 36, R: 48, ang: [228, 312], cloth: 'checks',
+    { id: 'fl', gx: 2.6, gy: 10.4, rx: 38, R: 52, ang: [222, 270, 318], cloth: 'checks',
       items: [{ k: 'cup', ox: -18, oy: 9 }, { k: 'tea', ox: 6, oy: 12 }] },
     { id: 'fr', gx: 8.2, gy: 12.0, rx: 30, R: 40, ang: [], cloth: 'runner',
       items: [{ k: 'cup', ox: -17, oy: 9 }, { k: 'pastry', ox: 17, oy: 9 }, { k: 'book', ox: 0, oy: 14 }] }

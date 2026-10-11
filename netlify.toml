@@ -1,3 +1,4 @@
+# Little flow cafe: a plain static site, no build step.
 [build]
   command = "echo 'No build needed'"
   publish = "."

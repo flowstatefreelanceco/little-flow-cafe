@@ -439,12 +439,13 @@
   }
   var ROSTER = {
     back: [
-      npc({ name: 'Mina', skin: 1, hair: 'bun', hairColor: 1, body: 1, outfit: 'cardigan', outfitColor: 0, glasses: 'round' }),
+      npc({ name: 'Mina', skin: 0, hair: 'long', hairColor: 6, body: 1, outfit: 'cardigan', outfitColor: 3, glasses: 'round', detail: 'freckles' }),
       null,
       npc({ name: 'Noor', skin: 4, hair: 'hijab', hairColor: 2, body: 1, outfit: 'turtle', outfitColor: 4 })
     ],
     fl: [
       npc({ name: 'Theo', skin: 3, hair: 'locs', hairColor: 1, body: 2, outfit: 'stripes', outfitColor: 3, facial: 'beard', glasses: 'square' }),
+      npc({ name: 'Ivy', skin: 2, hair: 'wavy', hairColor: 4, body: 1, outfit: 'overalls', outfitColor: 1, detail: 'freckles', hairAcc: 'flower' }),
       npc({ name: 'Jo', skin: 6, hair: 'twists', hairColor: 0, body: 1, outfit: 'hoodie', outfitColor: 7, seat: 'wheelchair', hearing: true })
     ],
     fr: []
