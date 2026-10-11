@@ -6,7 +6,7 @@
   <title>Little flow cafe</title>
   <meta name="description" content="A cozy pixel cafe for body doubling and coworking. A timer, a task list, plants to tend, gentle sounds, and a daily card.">
   <meta name="theme-color" content="#fff6e3">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' rx='3' fill='%23fff6e3'/%3E%3Crect x='7' y='8' width='2' height='6' fill='%235a9e74'/%3E%3Crect x='3' y='4' width='5' height='4' fill='%2382c394'/%3E%3Crect x='8' y='2' width='5' height='5' fill='%2362b872'/%3E%3Crect x='5' y='13' width='6' height='2' fill='%23d98a62'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ccircle cx='48' cy='48' r='46' fill='%23ffe9c4'/%3E%3Cpath d='M48 56 V36' stroke='%236fae80' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M48 46 C34 46 24 38 24 26 C38 26 48 33 48 46Z' fill='%238fcf9e'/%3E%3Cpath d='M48 40 C60 40 71 33 72 20 C58 20 48 27 48 40Z' fill='%236fbf84'/%3E%3Cpath d='M31 56 H65 L61 78 H35Z' fill='%23e8a07a'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&family=Pixelify+Sans:wght@500;600;700&display=swap" rel="stylesheet">
@@ -18,9 +18,22 @@
   <!-- Welcome screen (browsers need one tap before they allow sound) -->
   <div id="splash" class="splash" role="dialog" aria-modal="true" aria-labelledby="splash-title">
     <div class="splash-card">
-      <svg class="splash-icon" viewBox="0 0 16 16" width="64" height="64" shape-rendering="crispEdges" aria-hidden="true">
-        <rect x="7" y="8" width="2" height="6" fill="#5a9e74"/><rect x="3" y="4" width="5" height="4" fill="#82c394"/>
-        <rect x="8" y="2" width="5" height="5" fill="#62b872"/><rect x="5" y="13" width="6" height="2" fill="#d98a62"/>
+      <svg class="splash-icon" viewBox="0 0 96 96" width="96" height="96" aria-hidden="true">
+        <defs>
+          <filter id="wc" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="3"/><feGaussianBlur stdDeviation="0.6"/></filter>
+          <radialGradient id="wash" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#ffd9a8" stop-opacity=".9"/><stop offset="1" stop-color="#ffd9a8" stop-opacity="0"/></radialGradient>
+        </defs>
+        <circle cx="48" cy="50" r="44" fill="url(#wash)"/>
+        <g filter="url(#wc)">
+          <path d="M48 58 C47 48 47 42 48 34" stroke="#6fae80" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <path d="M48 46 C34 46 24 38 24 26 C38 26 48 33 48 46Z" fill="#8fcf9e" opacity=".9"/>
+          <path d="M48 40 C60 40 71 33 72 20 C58 20 48 27 48 40Z" fill="#6fbf84" opacity=".9"/>
+          <path d="M48 52 C40 54 34 50 32 44 C40 42 46 45 48 52Z" fill="#a6dcae" opacity=".85"/>
+          <path d="M31 58 H65 L61 78 C60.5 80.5 58.5 82 56 82 H40 C37.5 82 35.500 80.5 35 78Z" fill="#e8a07a"/>
+          <path d="M31 58 H65 V62 H31Z" fill="#f2b896"/>
+          <circle cx="43" cy="70" r="1.6" fill="#7a4a3a" opacity=".7"/><circle cx="53" cy="70" r="1.6" fill="#7a4a3a" opacity=".7"/>
+          <path d="M46 73.500 Q48 75.500 50 73.500" stroke="#7a4a3a" stroke-width="1.3" fill="none" stroke-linecap="round" opacity=".7"/>
+        </g>
       </svg>
       <h2 id="splash-title">Little flow cafe</h2>
       <p class="lead" id="splash-lead">A little corner for body doubling. Everyone in here is working on something, and you can too.</p>
@@ -63,10 +76,7 @@
 
   <header class="topbar">
     <div class="brand">
-      <svg class="logo" viewBox="0 0 16 16" width="34" height="34" shape-rendering="crispEdges" aria-hidden="true">
-        <rect x="7" y="8" width="2" height="6" fill="#5a9e74"/><rect x="3" y="4" width="5" height="4" fill="#82c394"/>
-        <rect x="8" y="2" width="5" height="5" fill="#62b872"/><rect x="5" y="13" width="6" height="2" fill="#d98a62"/>
-      </svg>
+      <svg class="logo" viewBox="0 0 96 96" width="34" height="34" aria-hidden="true"><circle cx="48" cy="48" r="46" fill="#ffe9c4"/><path d="M48 56 V36" stroke="#6fae80" stroke-width="4" stroke-linecap="round"/><path d="M48 46 C34 46 24 38 24 26 C38 26 48 33 48 46Z" fill="#8fcf9e"/><path d="M48 40 C60 40 71 33 72 20 C58 20 48 27 48 40Z" fill="#6fbf84"/><path d="M31 56 H65 L61 78 H35Z" fill="#e8a07a"/></svg>
       <div>
         <h1>Little flow cafe</h1>
         <p class="tag">Body doubling and coworking, with plants</p>

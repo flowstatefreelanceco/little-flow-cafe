@@ -260,13 +260,18 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 
 .splash {
   position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 18px; overflow: auto;
-  background: radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--accent) 35%, var(--bg)), var(--bg) 60%);
+  background:
+    radial-gradient(ellipse 60% 50% at 18% 15%, color-mix(in srgb, #f6b7c4 55%, transparent), transparent 70%),
+    radial-gradient(ellipse 55% 55% at 85% 20%, color-mix(in srgb, #ffd89a 60%, transparent), transparent 70%),
+    radial-gradient(ellipse 60% 55% at 70% 90%, color-mix(in srgb, #a9d8b8 60%, transparent), transparent 70%),
+    radial-gradient(ellipse 50% 50% at 10% 85%, color-mix(in srgb, #b9cdf0 50%, transparent), transparent 70%),
+    var(--bg);
 }
 .splash[hidden] { display: none; }
 .splash-card { width: min(520px, 100%); box-sizing: border-box; text-align: center; background: var(--panel); border: 1.5px solid var(--edge); border-radius: 26px; box-shadow: var(--shadow); padding: 36px 32px 30px; display: flex; flex-direction: column; align-items: center; gap: 18px; }
 .splash-card > * { margin: 0; }
 .splash-card h2 { font-family: var(--font-cute); font-size: 2.7rem; font-weight: 700; line-height: 1.1; letter-spacing: 0.01em; color: var(--ink); }
-.splash-icon { image-rendering: pixelated; }
+.splash-icon { width: 96px; height: 96px; margin-bottom: -4px; }
 .splash-card .lead { font-size: 1.1rem; line-height: 1.6; max-width: 36ch; text-wrap: balance; }
 .splash-card .sub { color: var(--muted); font-size: 1rem; line-height: 1.6; max-width: 38ch; text-wrap: balance; }
 .splash-card .btn.big { margin-top: 6px; padding: 14px 34px; font-size: 1.15rem; }

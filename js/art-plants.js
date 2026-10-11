@@ -451,8 +451,15 @@
       ent.key = key;
     }
     var g = C.ctx();
-    g.imageSmoothingEnabled = sc !== 1;
-    g.drawImage(ent.cv, Math.round(slot.x - ox * sc), Math.round(slot.y - oy * sc), Math.round(LW * sc), Math.round(LH * sc));
+    // a slow, soft sway: hanging plants swing from their hook, others lean from the pot
+    var amp = h === 0 ? 0.03 : (h === 1 ? 0.012 : 0);
+    var ang = Math.sin(t * 0.8 + slot.id * 1.7) * amp + Math.sin(t * 0.37 + slot.id) * amp * 0.5;
+    var px = slot.x, py = hang ? (slot.hook || slot.y - 40) : slot.y;
+    g.imageSmoothingEnabled = true;
+    g.save();
+    g.translate(px, py); g.rotate(ang); g.translate(-px, -py);
+    g.drawImage(ent.cv, slot.x - ox * sc, slot.y - oy * sc, LW * sc, LH * sc);
+    g.restore();
     g.imageSmoothingEnabled = false;
   }
 

@@ -1190,6 +1190,20 @@
       var k = Math.abs(Math.round(p.cx));
       Pe.drawLaptop(lx, ly, ['#e9e4da', '#dfe3ea', '#f0e2e2', '#e4ece0'][k % 4], ['#f4a6b8', '#a8d5ba', '#bcd7f2', '#f5d98a', '#c9a7ff'][k % 5]);
     });
+    // little typing bubbles, popping up now and then over whoever is working
+    if (mode !== 'break') mine.forEach(function (p) {
+      var cyc = (t * 0.22 + p.ph * 0.37) % 1;
+      if (cyc > 0.3 || Math.sin(t * 0.6 + p.ph) <= -0.35) return;
+      var env = Math.sin(cyc / 0.3 * Math.PI), bx = Math.round(p.cx + 16), by = Math.round(p.T - 52 - env * 3);
+      g.save(); g.globalAlpha = Math.min(1, env * 1.6) * 0.92;
+      g.fillStyle = '#fffaf0'; g.beginPath(); g.ellipse(bx, by, 8, 4.5, 0, 0, 6.283); g.fill();
+      g.beginPath(); g.moveTo(bx - 5, by + 3); g.lineTo(bx - 8, by + 7); g.lineTo(bx - 1, by + 4); g.fill();
+      for (var i = 0; i < 3; i++) {
+        g.globalAlpha = Math.min(1, env * 1.6) * (0.35 + 0.65 * Math.max(0, Math.sin(t * 7 - i * 1.1)));
+        g.fillStyle = '#9a8a78'; g.beginPath(); g.arc(bx - 4 + i * 4, by, 1.2, 0, 6.283); g.fill();
+      }
+      g.restore();
+    });
     tb.items.forEach(function (it) { drawItem(it.k, Math.round(tb.cx + it.ox), Math.round(topY + it.oy), t); });
     if (tb.id === 'fr') this.drawOnePlant(g, t, Pl.SLOTS[7]);
     if (tb.id === 'fl') this.drawOnePlant(g, t, Pl.SLOTS[15]);
