@@ -8,6 +8,7 @@
 
   /* ---------- geometry ---------- */
   var W = 576, H = 432;
+  var K = 3; // the scene is painted at K times its logical size
   var TW = 16, TH = 8, N = 16, WH = 110, WL = N * TW;
   var OX = 288, OY = 134, SLAB = 14;
   var LSH = (N - 13) * TW; // the left wall grew at its far end, so older left wall art shifts over by this much
@@ -651,9 +652,10 @@
   /* ---------- the scene ---------- */
   function Scene(canvas) {
     this.canvas = canvas;
-    canvas.width = W * 2; canvas.height = H * 2;
-    this.octx = canvas.getContext('2d');
-    this.work = C.makeCanvas(W, H);
+    canvas.width = W * K; canvas.height = H * K;
+    try { this.gl = initGL(canvas); } catch (err) { this.gl = null; }
+    this.octx = this.gl ? null : canvas.getContext('2d');
+    this.work = C.makeCanvas(W * K, H * K);
     this.ctx = this.work.getContext('2d');
     this.state = { hour: 12, weather: 'clear', fire: true, mode: 'idle', plants: {}, player: Pe.defaultSpec(), calm: false };
     this.time = 0; this.last = null;
@@ -1501,55 +1503,138 @@
     strip(iso(0, 0), iso(N, 0), -d * 0.9, d * 0.5);
     strip(iso(0, 0), iso(0, N), d * 0.9, d * 0.5);
   };
-  /* the watercolor pass: soften the pixels into the paper, add pigment bleed, grain and a loose paper edge */
+  /* the watercolor pass. The scene is drawn at K times its logical size, then a shader (or a plain canvas fallback)
+     warps the edges like hand cut paper, pools pigment at the rims, adds granulation, and lays the whole thing on paper. */
   Scene.prototype.makePaper = function () {
-    var cv = C.makeCanvas(W * 2, H * 2), c = cv.getContext('2d'), r = rng(77), i;
+    var PW = W * 2, PH = H * 2;
+    var cv = C.makeCanvas(PW, PH), c = cv.getContext('2d'), r = rng(77), i;
+    c.fillStyle = '#ffffff'; c.fillRect(0, 0, PW, PH);
     for (i = 0; i < 70; i++) {
-      var x = r() * W * 2, y = r() * H * 2, rad = 40 + r() * 140, warm = r() < 0.5;
+      var x = r() * PW, y = r() * PH, rad = 40 + r() * 140, warm = r() < 0.5;
       var gr = c.createRadialGradient(x, y, 0, x, y, rad);
-      gr.addColorStop(0, warm ? 'rgba(255,214,150,0.07)' : 'rgba(120,150,190,0.05)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      gr.addColorStop(0, warm ? 'rgba(255,214,150,0.10)' : 'rgba(120,150,190,0.07)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
       c.fillStyle = gr; c.fillRect(x - rad, y - rad, rad * 2, rad * 2);
     }
-    for (i = 0; i < 26000; i++) {
-      c.fillStyle = r() < 0.5 ? 'rgba(120,84,50,' + (0.02 + r() * 0.05).toFixed(3) + ')' : 'rgba(255,255,250,' + (0.03 + r() * 0.07).toFixed(3) + ')';
-      c.fillRect(Math.floor(r() * W * 2), Math.floor(r() * H * 2), 1 + (r() < 0.2 ? 1 : 0), 1);
+    for (i = 0; i < 60000; i++) {
+      c.fillStyle = r() < 0.5 ? 'rgba(120,84,50,' + (0.03 + r() * 0.08).toFixed(3) + ')' : 'rgba(255,255,250,' + (0.05 + r() * 0.12).toFixed(3) + ')';
+      c.fillRect(Math.floor(r() * PW), Math.floor(r() * PH), 1 + (r() < 0.25 ? 1 : 0), 1 + (r() < 0.1 ? 1 : 0));
     }
     c.lineWidth = 1;
-    for (i = 0; i < 900; i++) {
-      var fx = r() * W * 2, fy = r() * H * 2, a = r() * 6.28, l = 3 + r() * 8;
-      c.strokeStyle = 'rgba(150,110,70,' + (0.03 + r() * 0.04).toFixed(3) + ')';
+    for (i = 0; i < 1400; i++) {
+      var fx = r() * PW, fy = r() * PH, a = r() * 6.28, l = 3 + r() * 9;
+      c.strokeStyle = 'rgba(150,110,70,' + (0.03 + r() * 0.05).toFixed(3) + ')';
       c.beginPath(); c.moveTo(fx, fy); c.lineTo(fx + Math.cos(a) * l, fy + Math.sin(a) * l); c.stroke();
     }
     // loose paper edge lives on its own canvas so it can fade at night
-    var ec = C.makeCanvas(W * 2, H * 2), e = ec.getContext('2d'), ew = 26, g1;
+    var ec = C.makeCanvas(PW, PH), e = ec.getContext('2d'), ew = 26, g1;
     function band(x0, y0, x1, y1, rx, ry, rw, rh) {
       g1 = e.createLinearGradient(x0, y0, x1, y1); g1.addColorStop(0, 'rgba(250,242,226,0.95)'); g1.addColorStop(1, 'rgba(250,242,226,0)');
       e.fillStyle = g1; e.fillRect(rx, ry, rw, rh);
     }
-    band(0, 0, 0, ew, 0, 0, W * 2, ew); band(0, H * 2, 0, H * 2 - ew, 0, H * 2 - ew, W * 2, ew);
-    band(0, 0, ew, 0, 0, 0, ew, H * 2); band(W * 2, 0, W * 2 - ew, 0, W * 2 - ew, 0, ew, H * 2);
+    band(0, 0, 0, ew, 0, 0, PW, ew); band(0, PH, 0, PH - ew, 0, PH - ew, PW, ew);
+    band(0, 0, ew, 0, 0, 0, ew, PH); band(PW, 0, PW - ew, 0, PW - ew, 0, ew, PH);
     this.edgeCv = ec;
     return cv;
   };
-  Scene.prototype.drawFinish = function (g) {
-    var o = this.octx, w2 = W * 2, h2 = H * 2;
-    if (!this.paper) { this.paper = this.makePaper(); this.softCv = C.makeCanvas(W / 2, H / 2); this.midCv = C.makeCanvas(W, H); }
+
+  var VS = 'attribute vec2 p;varying vec2 v;void main(){v=vec2(p.x*.5+.5,.5-p.y*.5);gl_Position=vec4(p,0.,1.);}';
+  var FS = [
+    'precision highp float;varying vec2 v;',
+    'uniform sampler2D uT,uP,uE;uniform vec2 uR;uniform float uEdge;uniform float uDark;',
+    'float h(vec2 q){return fract(sin(dot(q,vec2(127.1,311.7)))*43758.5453);}',
+    'float vn(vec2 q){vec2 i=floor(q),f=fract(q);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}',
+    'float fb(vec2 q){return vn(q)*.55+vn(q*2.1+7.3)*.3+vn(q*4.3+2.9)*.15;}',
+    'vec3 S(vec2 u){return texture2D(uT,u).rgb;}',
+    'void main(){',
+    ' vec2 px=1./uR;',
+    ' vec2 q=v*uR;',
+    // hand cut wobble: two scales of noise push the lookup around
+    ' vec2 w=vec2(fb(q*.022)-.5,fb(q*.022+31.7)-.5)*3.4+vec2(vn(q*.11)-.5,vn(q*.11+9.1)-.5)*1.4;',
+    ' vec2 u=v+w*px;',
+    // gentle antialias that keeps the stair steps from showing
+    ' vec3 c=S(u)*.28;',
+    ' float r=1.35;',
+    ' c+=(S(u+vec2(r,0.)*px)+S(u-vec2(r,0.)*px)+S(u+vec2(0.,r)*px)+S(u-vec2(0.,r)*px))*.1;',
+    ' c+=(S(u+vec2(r,r)*px)+S(u-vec2(r,r)*px)+S(u+vec2(r,-r)*px)+S(u-vec2(r,-r)*px))*.0800;',
+    // pigment pooling: a faint darker rim wherever colour changes
+    ' vec3 b=(S(u+vec2(4.,0.)*px)+S(u-vec2(4.,0.)*px)+S(u+vec2(0.,4.)*px)+S(u-vec2(0.,4.)*px))*.25;',
+    ' float e=clamp(length(c-b)*3.2,0.,1.);',
+    ' c*=1.-.15*e*(1.-uDark*.5);',
+    ' c=mix(c,c*c*(3.-2.*c),.16);',
+    // granulation and colour wash
+    ' vec3 pp=texture2D(uP,v).rgb;',
+    ' float gr=fb(q*.5)*.5+fb(q*1.7)*.5;',
+    ' c*=mix(vec3(1.),pp,.7);',
+    ' c*=.975+.05*gr;',
+    ' float wa=fb(q*.006+4.);',
+    ' c=mix(c,c*vec3(1.045,1.0,.95),wa);',
+    // soften toward cream, like gouache drying lighter
+    ' c=mix(c,vec3(.98,.94,.86),.06*(1.-uDark));',
+    ' vec4 ed=texture2D(uE,v);',
+    ' c=mix(c,ed.rgb,ed.a*uEdge);',
+    ' gl_FragColor=vec4(c,1.);',
+    '}'
+  ].join('\n');
+
+  function initGL(canvas) {
+    var gl = null;
+    try { gl = canvas.getContext('webgl', { antialias: false, alpha: false, preserveDrawingBuffer: false }); } catch (e) { gl = null; }
+    if (!gl || typeof gl.createShader !== 'function') return null;
+    function sh(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null; }
+    var vs = sh(gl.VERTEX_SHADER, VS), fs = sh(gl.FRAGMENT_SHADER, FS);
+    if (!vs || !fs) return null;
+    var pr = gl.createProgram(); gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
+    if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return null;
+    gl.useProgram(pr);
+    var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    function tex(unit, repeat) {
+      var t = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      return t;
+    }
+    var o = { gl: gl, pr: pr, tT: tex(0), tP: tex(1), tE: tex(2) };
+    gl.uniform1i(gl.getUniformLocation(pr, 'uT'), 0); gl.uniform1i(gl.getUniformLocation(pr, 'uP'), 1); gl.uniform1i(gl.getUniformLocation(pr, 'uE'), 2);
+    o.uR = gl.getUniformLocation(pr, 'uR'); o.uEdge = gl.getUniformLocation(pr, 'uEdge'); o.uDark = gl.getUniformLocation(pr, 'uDark');
+    gl.uniform2f(o.uR, canvas.width, canvas.height);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    return o;
+  }
+
+  Scene.prototype.drawFinish = function () {
+    var edgeA = 1 - 0.8 * clamp((this.sky ? this.sky.ta : 0) * 1.7, 0, 1);
+    if (!this.paper) this.paper = this.makePaper();
+    var G = this.gl;
+    if (G) {
+      var gl = G.gl;
+      if (!G.up) {
+        gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, G.tP); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.paper);
+        gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, G.tE); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.edgeCv);
+        G.up = true;
+      }
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, G.tT);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.work);
+      gl.uniform1f(G.uEdge, edgeA); gl.uniform1f(G.uDark, clamp((this.sky ? this.sky.ta : 0) * 1.5, 0, 1));
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      return;
+    }
+    // plain canvas fallback
+    var o = this.octx, wk = W * K, hk = H * K;
+    if (!this.softCv) this.softCv = C.makeCanvas(W / 2, H / 2);
     var sg = this.softCv.getContext('2d');
     sg.imageSmoothingEnabled = true; sg.clearRect(0, 0, W / 2, H / 2); sg.drawImage(this.work, 0, 0, W / 2, H / 2);
     o.save();
     o.imageSmoothingEnabled = true; o.imageSmoothingQuality = 'high';
     o.globalCompositeOperation = 'source-over'; o.globalAlpha = 1;
-    o.drawImage(this.work, 0, 0, w2, h2);
-    // pigment bleeding past the lines
-    o.globalAlpha = 0.3; o.drawImage(this.softCv, 0, 0, w2, h2);
-    // richer, juicier pigment
-    o.globalAlpha = 0.42; o.globalCompositeOperation = 'overlay'; o.drawImage(this.work, 0, 0, w2, h2);
-    // a gentle wash of light so shadows stay see-through, like thin paint
-    o.globalAlpha = 0.07; o.globalCompositeOperation = 'screen'; o.drawImage(this.softCv, 0, 0, w2, h2);
-    o.globalAlpha = 0.12; o.globalCompositeOperation = 'soft-light'; o.fillStyle = '#fff1d6'; o.fillRect(0, 0, w2, h2);
-    o.globalCompositeOperation = 'source-over'; o.globalAlpha = 1;
-    o.drawImage(this.paper, 0, 0);
-    o.globalAlpha = 1 - 0.8 * clamp((this.sky ? this.sky.ta : 0) * 1.7, 0, 1); o.drawImage(this.edgeCv, 0, 0);
+    o.drawImage(this.work, 0, 0, wk, hk);
+    o.globalAlpha = 0.3; o.drawImage(this.softCv, 0, 0, wk, hk);
+    o.globalAlpha = 0.42; o.globalCompositeOperation = 'overlay'; o.drawImage(this.work, 0, 0, wk, hk);
+    o.globalAlpha = 0.12; o.globalCompositeOperation = 'soft-light'; o.fillStyle = '#fff1d6'; o.fillRect(0, 0, wk, hk);
+    o.globalCompositeOperation = 'multiply'; o.globalAlpha = 0.9; o.drawImage(this.paper, 0, 0, wk, hk);
+    o.globalCompositeOperation = 'source-over';
+    o.globalAlpha = edgeA; o.drawImage(this.edgeCv, 0, 0, wk, hk);
     o.restore();
   };
 
@@ -1558,8 +1643,8 @@
     if (this.last === null) this.last = t;
     var dt = clamp(t - this.last, 0, 0.1); this.last = t; this.dt = dt; this.time = t;
     var g = this.ctx;
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W * K, H * K); g.setTransform(K, 0, 0, K, 0, 0);
     C.setCtx(g);
-    g.clearRect(0, 0, W, H);
     this.updateCat(dt); this.updateBubbles(t); this.updateParticles(dt);
 
     this.drawBackground(g);
