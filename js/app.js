@@ -1096,7 +1096,7 @@
   function init() {
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches && !load()) S.calm = true;
     $('brand-link').href = CFG.brandUrl || '#'; $('brand-link').textContent = CFG.brandName || 'Flow State Freelance Co.';
-    try { scene = Art.createScene(canvas); } catch (e) { scene = null; }
+    try { scene = Art.createScene(canvas); } catch (e) { scene = null; } 
     ensurePlants();
     renderVibes(); renderTimerControls(); renderTimerFace(); renderTasks(); renderSounds(); renderGarden(); setupSignup(); setupAuth(); showSaveNote(); checkVacation(); renderVacation(); renderJar(0); setInterval(checkVacation, 60000);
     syncScene();

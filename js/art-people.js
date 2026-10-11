@@ -139,7 +139,7 @@
         if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
         j = (ny * w + nx) * 4;
         if (d[j + 3] > 200) {
-          out[i] = d[j] * 0.7 + 12; out[i + 1] = d[j + 1] * 0.62 + 8; out[i + 2] = d[j + 2] * 0.66 + 14; out[i + 3] = 120;
+          out[i] = d[j] * 0.7 + 12; out[i + 1] = d[j + 1] * 0.62 + 8; out[i + 2] = d[j + 2] * 0.66 + 14; out[i + 3] = 52;
           break;
         }
       }
@@ -153,7 +153,7 @@
 
   function paint(s, a) {
     var S = a.S || 3;
-    var cv = C.makeCanvas(SW * S, SH * S), g = cv.getContext('2d');
+    var cv = C.makeCanvas(SW * S, SH * S, true), g = cv.getContext('2d');
     g.scale(S, S);
     g.lineJoin = 'round'; g.lineCap = 'round';
     var cx = AX, T = AT, t = a.t || 0;

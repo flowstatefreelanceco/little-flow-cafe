@@ -417,11 +417,12 @@
   }
 
   /* a dark outline, same trick as the people */
-  function outline(cv) {
+  function outline(cv, d0) {
+    d0 = d0 || 1;
     var g = cv.getContext('2d'), w = cv.width, h = cv.height;
     var im = g.getImageData(0, 0, w, h), d = im.data, out = new Uint8ClampedArray(d.length);
     out.set(d);
-    var x, y, k, i, j, nx, ny, dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    var x, y, k, i, j, nx, ny, dirs = [[d0, 0], [-d0, 0], [0, d0], [0, -d0]];
     for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
       i = (y * w + x) * 4;
       if (d[i + 3] > 40) continue;
@@ -429,11 +430,29 @@
         nx = x + dirs[k][0]; ny = y + dirs[k][1];
         if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
         j = (ny * w + nx) * 4;
-        if (d[j + 3] > 200) { out[i] = d[j] * 0.68 + 10; out[i + 1] = d[j + 1] * 0.6 + 8; out[i + 2] = d[j + 2] * 0.66 + 12; out[i + 3] = 125; break; }
+        if (d[j + 3] > 200) { out[i] = d[j] * 0.68 + 10; out[i + 1] = d[j + 1] * 0.6 + 8; out[i + 2] = d[j + 2] * 0.66 + 12; out[i + 3] = 50; break; }
       }
     }
     im.data.set(out);
     g.putImageData(im, 0, 0);
+  }
+
+  /* round off the blocky edges so plants read as painted, not pixelated */
+  var soften_tmp = null;
+  function softenSprite(cv) {
+    try {
+      var k = cv.__k || 1, w = cv.width, h = cv.height;
+      if (!soften_tmp) soften_tmp = document.createElement('canvas');
+      soften_tmp.width = w; soften_tmp.height = h;
+      var t = soften_tmp.getContext('2d'); t.setTransform(1, 0, 0, 1, 0, 0);
+      if (typeof t.filter === 'undefined') return;
+      t.clearRect(0, 0, w, h); t.drawImage(cv, 0, 0);
+      var g = cv.getContext('2d'); g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+      g.clearRect(0, 0, w, h);
+      g.filter = 'blur(' + (0.55 * k).toFixed(2) + 'px)'; g.drawImage(soften_tmp, 0, 0);
+      g.filter = 'none'; g.globalAlpha = 0.6; g.drawImage(soften_tmp, 0, 0);
+      g.restore();
+    } catch (e) {}
   }
 
   var spriteCache = {};
@@ -448,7 +467,7 @@
     var key = [slot.id, rv.id, st, h, tq].join('|');
     var ent = spriteCache[slot.id];
     if (!ent || ent.key !== key) {
-      if (!ent) ent = spriteCache[slot.id] = { cv: C.makeCanvas(LW, LH), key: '' };
+      if (!ent) ent = spriteCache[slot.id] = { cv: C.makeCanvas(LW, LH, false, Math.round(C.K * Math.max(1, sc))), key: '' };
       var lg = ent.cv.getContext('2d');
       lg.clearRect(0, 0, LW, LH);
       var prev = C.ctx();
@@ -458,7 +477,7 @@
       var cols = colors(rv.type, h), fn = TYPES[rv.type] || fern, top = oy - POT[slot.kind].h;
       if (hang) { drawPot(ls, ox, oy); fn(ox, top, st, cols, dr, tq / 8, ls); }
       else { fn(ox, top, st, cols, dr, tq / 8, ls); drawPot(ls, ox, oy); }
-      outline(ent.cv);
+      outline(ent.cv, Math.max(1, Math.round((ent.cv.__k || 1) * 0.55)));
       C.setCtx(prev);
       ent.key = key;
     }

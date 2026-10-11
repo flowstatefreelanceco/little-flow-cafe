@@ -39,97 +39,123 @@
   function setCtx(c) { g = c; if (g) g.imageSmoothingEnabled = false; }
   function ctx() { return g; }
 
+  /* Soft, painted versions of the old pixel helpers. Everything keeps the same coordinates, but shapes are
+     drawn as smooth rounded dabs so, painted at a higher resolution, the scene reads as a flat illustration. */
+  function rrPath(x, y, w, h, r) {
+    r = Math.max(0, Math.min(r, w / 2, h / 2));
+    g.beginPath();
+    if (r < 0.01) { g.rect(x, y, w, h); return; }
+    g.moveTo(x + r, y);
+    g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+    g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r);
+    g.closePath();
+  }
   function R(x, y, w, h, c) {
-    if (c) g.fillStyle = c;
-    g.fillRect(Math.round(x), Math.round(y), w, h);
+    if (c) g.fillStyle = tone(c);
+    x = Math.round(x); y = Math.round(y);
+    if (w <= 0 || h <= 0) return;
+    var m = Math.min(w, h), r;
+    if (w >= 60 && h >= 40) r = 0;
+    else if (m <= 2) r = m * 0.5 * 0.9;
+    else r = Math.min(1.15, m * 0.2);
+    // a hair of overlap so neighbouring shapes never leave paper showing between them
+    rrPath(x - 0.04, y - 0.04, w + 0.08, h + 0.08, r); g.fill();
   }
-  function P(x, y, c) { R(x, y, 1, 1, c); }
+  /* gouache palette: every flat hex colour is eased toward a dusty, chalky version of itself */
+  var toneCache = {};
+  function tone(c) {
+    if (typeof c !== 'string' || c.charAt(0) !== '#') return c;
+    var t = toneCache[c]; if (t) return t;
+    var h = c.slice(1); if (h.length === 3) h = h.charAt(0) + h.charAt(0) + h.charAt(1) + h.charAt(1) + h.charAt(2) + h.charAt(2);
+    if (h.length !== 6) return (toneCache[c] = c);
+    var r = parseInt(h.substr(0, 2), 16) / 255, g_ = parseInt(h.substr(2, 2), 16) / 255, b = parseInt(h.substr(4, 2), 16) / 255;
+    var mx = Math.max(r, g_, b), mn = Math.min(r, g_, b), l = (mx + mn) / 2, d = mx - mn, s = 0, hu = 0;
+    if (d) {
+      s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn);
+      hu = mx === r ? (g_ - b) / d + (g_ < b ? 6 : 0) : mx === g_ ? (b - r) / d + 2 : (r - g_) / d + 4; hu /= 6;
+    }
+    s *= 0.68; l = l * 0.82 + 0.15;
+    function f(p, q, t2) { if (t2 < 0) t2 += 1; if (t2 > 1) t2 -= 1; if (t2 < 1 / 6) return p + (q - p) * 6 * t2; if (t2 < .5) return q; if (t2 < 2 / 3) return p + (q - p) * (2 / 3 - t2) * 6; return p; }
+    var q = l < .5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q, R2, G2, B2;
+    if (!s) { R2 = G2 = B2 = l; } else { R2 = f(p, q, hu + 1 / 3); G2 = f(p, q, hu); B2 = f(p, q, hu - 1 / 3); }
+    function x(v) { v = Math.round(v * 255).toString(16); return v.length < 2 ? '0' + v : v; }
+    return (toneCache[c] = '#' + x(R2) + x(G2) + x(B2));
+  }
 
-  // filled pixel disk
-  function D(cx, cy, r, c) {
-    if (c) g.fillStyle = c;
-    for (var dy = -r; dy <= r; dy++) {
-      var w = Math.floor(Math.sqrt(Math.max(0, r * r + r * 0.8 - dy * dy)));
-      g.fillRect(Math.round(cx - w), Math.round(cy + dy), w * 2 + 1, 1);
-    }
+  function P(x, y, c) {
+    if (c) g.fillStyle = tone(c);
+    g.beginPath(); g.arc(Math.round(x) + 0.5, Math.round(y) + 0.5, 0.64, 0, 6.2832); g.fill();
   }
-  // filled pixel ellipse
+
+  // filled disk
+  function D(cx, cy, r, c) {
+    if (c) g.fillStyle = tone(c);
+    g.beginPath(); g.arc(cx + 0.5, cy + 0.5, r + 0.55, 0, 6.2832); g.fill();
+  }
+  // filled ellipse
   function E(cx, cy, rx, ry, c) {
-    if (c) g.fillStyle = c;
-    for (var dy = -ry; dy <= ry; dy++) {
-      var k = dy / (ry + 0.5);
-      var w = Math.round(rx * Math.sqrt(Math.max(0, 1 - k * k)));
-      g.fillRect(Math.round(cx - w), Math.round(cy + dy), w * 2 + 1, 1);
-    }
+    if (c) g.fillStyle = tone(c);
+    g.beginPath(); g.ellipse(cx + 0.5, cy + 0.5, rx + 0.55, ry + 0.55, 0, 0, 6.2832); g.fill();
   }
   // rounded rectangle
   function RR(x, y, w, h, r, c) {
-    if (c) g.fillStyle = c;
-    for (var i = 0; i < h; i++) {
-      var d = 0;
-      if (i < r) d = r - i;
-      else if (i >= h - r) d = i - (h - r - 1);
-      var inset = 0;
-      if (d > 0) {
-        var dy = d - 0.5;
-        inset = Math.round(r - Math.sqrt(Math.max(0, r * r - dy * dy)));
-      }
-      g.fillRect(Math.round(x + inset), Math.round(y + i), Math.max(0, w - inset * 2), 1);
-    }
+    if (c) g.fillStyle = tone(c);
+    rrPath(Math.round(x), Math.round(y), w, h, r + 0.3); g.fill();
   }
   // ring (outline of a circle)
   function ring(cx, cy, r, th, c, maxY) {
-    if (c) g.fillStyle = c;
-    for (var dy = -r; dy <= r; dy++) {
-      for (var dx = -r; dx <= r; dx++) {
-        var d = Math.sqrt(dx * dx + dy * dy);
-        if (d <= r + 0.4 && d > r - th + 0.4 && (maxY === undefined || cy + dy <= maxY)) g.fillRect(Math.round(cx + dx), Math.round(cy + dy), 1, 1);
-      }
-    }
+    c = c || g.fillStyle;
+    g.save();
+    if (maxY !== undefined) { g.beginPath(); g.rect(cx - r - 3, cy - r - 3, r * 2 + 6, maxY - (cy - r - 3) + 1); g.clip(); }
+    g.lineWidth = th; g.strokeStyle = c ? tone(c) : g.strokeStyle;
+    g.beginPath(); g.arc(cx + 0.5, cy + 0.5, r - th / 2 + 0.55, 0, 6.2832); g.stroke();
+    g.restore();
   }
-  // dotted texture fill (for curls and coils)
+  // soft speckled fill (for curls and coils)
   function TX(x, y, w, h, c1, c2) {
     R(x, y, w, h, c1);
-    g.fillStyle = c2;
+    g.fillStyle = tone(c2);
     for (var j = 0; j < h; j++) for (var i = 0; i < w; i++) {
-      if (((i + j * 2) % 3) === 0) g.fillRect(Math.round(x + i), Math.round(y + j), 1, 1);
+      if (((i + j * 2) % 3) === 0) { g.beginPath(); g.arc(Math.round(x + i) + 0.5, Math.round(y + j) + 0.5, 0.5, 0, 6.2832); g.fill(); }
     }
   }
   function TXD(cx, cy, r, c1, c2) {
     D(cx, cy, r, c1);
-    g.fillStyle = c2;
+    g.fillStyle = tone(c2);
     for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) {
       if (dx * dx + dy * dy <= r * r && (((dx + r) + (dy + r) * 2) % 3) === 0) {
-        g.fillRect(Math.round(cx + dx), Math.round(cy + dy), 1, 1);
+        g.beginPath(); g.arc(Math.round(cx + dx) + 0.5, Math.round(cy + dy) + 0.5, 0.5, 0, 6.2832); g.fill();
       }
     }
   }
-  // 1px line (bresenham)
+  // a short brush stroke
   function line(x0, y0, x1, y1, c) {
-    if (c) g.fillStyle = c;
-    x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
-    var dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0);
-    var sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1, err = dx + dy;
-    for (var n = 0; n < 400; n++) {
-      g.fillRect(x0, y0, 1, 1);
-      if (x0 === x1 && y0 === y1) break;
-      var e2 = 2 * err;
-      if (e2 >= dy) { err += dy; x0 += sx; }
-      if (e2 <= dx) { err += dx; y0 += sy; }
-    }
+    g.strokeStyle = c ? tone(c) : g.fillStyle;
+    g.lineWidth = 1.15; g.lineCap = 'round'; g.lineJoin = 'round';
+    g.beginPath(); g.moveTo(Math.round(x0) + 0.5, Math.round(y0) + 0.5); g.lineTo(Math.round(x1) + 0.5, Math.round(y1) + 0.5); g.stroke();
   }
 
-  function makeCanvas(w, h) {
+  var K = 3; // canvases made through makeCanvas are painted at K times their logical size
+  function makeCanvas(w, h, raw, kk) {
     var c = document.createElement('canvas');
-    c.width = w; c.height = h;
+    if (raw) { c.width = w; c.height = h; return c; }
+    kk = kk || K;
+    c.width = Math.round(w * kk); c.height = Math.round(h * kk);
+    c.__lw = w; c.__lh = h; c.__k = kk;
+    var cx = c.getContext('2d');
+    cx.scale(kk, kk);
     return c;
+  }
+  // draw a canvas from makeCanvas at its logical size (or a given one)
+  function blit(dst, src, x, y, w, h) {
+    dst.drawImage(src, x, y, w || src.__lw || src.width, h || src.__lh || src.height);
   }
 
   Cafe.Core = {
     W: W, H: H,
-    setCtx: setCtx, ctx: ctx,
+    tone: tone, setCtx: setCtx, ctx: ctx,
     R: R, P: P, D: D, E: E, RR: RR, ring: ring, TX: TX, TXD: TXD, line: line,
     clamp: clamp, lerp: lerp, mix: mix, shade: shade, rng: rng,
-    makeCanvas: makeCanvas
+    makeCanvas: makeCanvas, blit: blit, K: K
   };
 })();
