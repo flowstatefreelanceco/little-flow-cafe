@@ -18,6 +18,7 @@
   <!-- Welcome screen (browsers need one tap before they allow sound) -->
   <div id="splash" class="splash" role="dialog" aria-modal="true" aria-labelledby="splash-title">
     <div class="splash-card">
+      <div class="splash-brand">
       <svg class="splash-icon" viewBox="0 0 96 96" width="96" height="96" role="img" aria-label="A little potted plant">
         <defs>
           <radialGradient id="wash" cx="50%" cy="48%" r="52%"><stop offset="0" stop-color="#ffd9a8" stop-opacity=".85"/><stop offset="1" stop-color="#ffd9a8" stop-opacity="0"/></radialGradient>
@@ -40,6 +41,8 @@
       <h2 id="splash-title">Little flow cafe</h2>
       <p class="lead" id="splash-lead">A little corner for body doubling. Everyone in here is working on something, and you can too.</p>
       <p class="sub">A timer, a task list, plants that are rooting for you, and soft sounds.</p>
+      </div>
+      <div class="splash-form">
       <div id="auth-in" class="auth-in" hidden>
         <p class="hello" id="auth-hello">Welcome back</p>
         <button type="button" class="link" id="auth-out">Not you? Log out</button>
@@ -73,6 +76,7 @@
       <button id="enter" class="btn primary big" type="button" data-autofocus>Step inside</button>
       <p class="fine">Soft waves and a little lo-fi start playing. You can change or mute them any time.</p>
       <noscript><p class="fine">This cafe needs JavaScript turned on to open its doors.</p></noscript>
+      </div>
     </div>
   </div>
 
