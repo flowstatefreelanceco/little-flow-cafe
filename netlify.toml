@@ -1,6 +1,0 @@
-# Little flow cafe: a plain static site, no build step.
-[build]
-  publish = "."
-
-[functions]
-  directory = "netlify/functions"
