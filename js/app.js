@@ -1009,7 +1009,7 @@
     function validEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
     function guard() {
       if (configured) return true;
-      say('Accounts switch on once this site is connected to Supabase. For now, step inside as a guest and everything saves on this device.');
+      say('Accounts are opening soon. For now, step inside as a guest and everything saves on this device.');
       return false;
     }
     function showCode(email) {

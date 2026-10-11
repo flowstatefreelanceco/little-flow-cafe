@@ -1,4 +1,4 @@
-/* Little flow cafe: optional accounts and cloud saving through Supabase.
+/* Little flow cafe: optional accounts and cloud saving.
    Passwordless: people enter their name and email, then use the link (or 6 digit code) we email them.
    Only the public anon key is used here. It is safe in the page because the database rules (RLS) limit what it can do. */
 (function () {

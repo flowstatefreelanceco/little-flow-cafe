@@ -17,8 +17,8 @@ window.CAFE_CONFIG = {
   // These two values are public and safe to paste here: Project URL and the "anon" (publishable) key.
   // Never paste the service_role key here.
   supabase: {
-    url: '',
-    anonKey: ''
+    url: 'https://bqhzltpfurhhyihxzuir.supabase.co',
+    anonKey: 'sb_publishable_DVRaue_rfKLwHjwk_d9fgg_6RtSGNAy'
   },
 
   accountConsent:
