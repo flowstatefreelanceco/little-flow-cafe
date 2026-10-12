@@ -577,7 +577,9 @@
       npc({ name: 'Ivy', skin: 2, hair: 'wavy', hairColor: 4, body: 1, outfit: 'overalls', outfitColor: 1, detail: 'freckles', hairAcc: 'flower', eyes: 3, laptop: 1 }),
       npc({ name: 'Jo', skin: 6, hair: 'twists', hairColor: 0, body: 1, outfit: 'hoodie', outfitColor: 7, seat: 'wheelchair', hearing: true, eyes: 1, laptop: 3 })
     ],
-    fr: []
+    fr: [
+      npc({ name: 'Wren', skin: 8, hair: 'afro', hairColor: 0, body: 2, outfit: 'cardigan', outfitColor: 6, glasses: 'round', eyes: 2, laptop: 4 })
+    ]
   };
 
   Cafe.People = {
