@@ -18,9 +18,9 @@
 
   /* ---------- the palette: dusty, warm, a little mixed ---------- */
   var PAL = {
-    wall: '#f1e6d2', wallHi: '#f8f0e2', wain: '#c47a5c', wainLn: '#b06e59', cream: '#efe0c8', creamDk: '#d9c6a6',
-    wood: '#9b6747', woodDk: '#7a4e36', woodLt: '#b98259', floorA: '#c99c70', floorB: '#cfa577', seam: '#b78a62',
-    stone: '#cdb99d', stoneLn: '#b9a283', terra: '#b9694d', sage: '#9bb08f', mustard: '#d9a64e', blue: '#7f9db3',
+    wall: '#f1e6d2', wallHi: '#f8f0e2', wain: '#c9694a', wainLn: '#b05a42', cream: '#efe0c8', creamDk: '#d9c6a6',
+    wood: '#a5683c', woodDk: '#7a4630', woodLt: '#c48a55', floorA: '#d29d62', floorB: '#dba96e', seam: '#b9824f',
+    stone: '#cdb99d', stoneLn: '#b9a283', terra: '#b9694d', sage: '#9bb08f', mustard: '#e3a93a', blue: '#7f9db3',
     mauve: '#a77a8c', ink: '#5b4237', navy: '#3f5a7a'
   };
   var BOOKC = ['#b9694d', '#d9a64e', '#7f9db3', '#8fa88a', '#a77a8c', '#efe0c8', '#c4806a', '#5f7f8a', '#d9a0a0', '#e6c9a0', '#7a8f4a', '#8c6a9a'];
@@ -487,7 +487,7 @@
       g.fillStyle = 'rgba(185,105,77,0.55)'; var s = 8;
       for (var yy = -ry; yy < ry; yy += s) for (var xx = -rx; xx < rx; xx += s) if ((Math.round(xx / s) + Math.round(yy / s)) % 2 === 0) g.fillRect(cx + xx, ty + yy, s, s);
     } else if (tb.cloth === 'runner') {
-      box(g, cx - rx, ty - 5, rx * 2, 10, PAL.terra); g.fillStyle = T(PAL.mustard); for (var k = -rx; k < rx; k += 8) g.fillRect(cx + k, ty - 1, 4, 2);
+      box(g, cx - rx, ty - 5, rx * 2, 10, '#7d4f96'); g.fillStyle = T(PAL.mustard); for (var k = -rx; k < rx; k += 8) g.fillRect(cx + k, ty - 1, 4, 2);
     } else {
       g.strokeStyle = 'rgba(122,78,54,0.28)'; g.lineWidth = 1;
       for (var q = -2; q <= 2; q++) { g.beginPath(); g.ellipse(cx, ty, rx * (0.35 + 0.15 * (q + 2)), ry * (0.35 + 0.15 * (q + 2)), 0, 0, 6.2832); g.stroke(); }
@@ -630,7 +630,7 @@
     var hp = this.hearthPos, cx = hp.x, cy = hp.y, b2 = Math.sin(t * 1.7) > 0 ? 1 : 0;
     // stone hearth slab and a cushion
     E(cx, cy + 2, 26, 8, '#cdbba0'); E(cx, cy + 1, 26, 8, '#e3d4bc');
-    E(cx, cy, 14, 5, '#d98a8a'); E(cx, cy - 1, 14, 5, '#e9a5a5');
+    E(cx, cy, 14, 5, '#9d78c8'); E(cx, cy - 1, 14, 5, '#b99be0');
     if (Math.random() < 0.006) this.emit('z', cx + 10, cy - 12, 1, { spread: 2 });
   };
   Scene.prototype.drawAvocado = function (g, t) {
@@ -927,10 +927,10 @@
 
   Scene.prototype.drawFloorLight = function (g, t) {
     var sky = this.sky, wx = this.state.weather;
-    var a = clamp(1 - sky.ta * 2.2, 0, 1) * (wx === 'clear' ? 0.2 : 0.08);
+    var a = clamp(1 - sky.ta * 2.2, 0, 1) * (wx === 'clear' ? 0.38 : 0.1);
     if (a < 0.01) return;
     var sh = Math.sin(((this.state.hour % 24) - 12) / 12 * Math.PI) * 60;
-    g.fillStyle = 'rgba(255,240,205,' + a.toFixed(3) + ')';
+    g.fillStyle = 'rgba(255,226,150,' + a.toFixed(3) + ')';
     g.beginPath(); g.moveTo(216, 304); g.lineTo(312, 304); g.lineTo(350 + sh, 428); g.lineTo(166 + sh, 428); g.closePath(); g.fill();
   };
 
@@ -1049,7 +1049,8 @@
       if (l.kind === 'salt') glow(l.x, l.y - 9, 34, '255,150,80', (0.34 + 0.24 * night) * (0.94 + 0.06 * Math.sin(t * 1.7 + l.x)));
       else glow(l.x, l.y - 14, 34, '255,196,130', 0.3 + 0.25 * night);
     });
-    PENDANTS.forEach(function (p) { glow(p.x, p.h + 6, 40, '255,206,140', 0.3 * base); });
+    PENDANTS.forEach(function (p) { glow(p.x, p.h + 6, 46, '255,200,110', 0.4 * base); });
+    glow(264, 150, 120, '255,236,170', 0.1 * (1 - night)); glow(60, 340, 70, '190,150,235', 0.06 + 0.06 * night);
     glow(this.nook.x - 16, this.nook.y - 48, 22, '255,190,110', 0.3 * base); glow(this.nook.x + 16, this.nook.y - 48, 22, '210,170,255', 0.1 + 0.08 * night);
     if (night > 0.1 && lit(st, 'strings')) { for (var x = 36; x < W; x += 72) glow(x, 24, 22, '255,214,140', 0.18 * night); }
     g.globalCompositeOperation = 'source-over';
