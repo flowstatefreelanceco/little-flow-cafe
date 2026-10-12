@@ -1043,6 +1043,9 @@
     $('acct-consent').textContent = CFG.accountConsent || 'By signing up, you agree to join the Flow State community newsletter. You are welcome to unsubscribe after the first issue!';
     function say(t) { msgEl.textContent = t || ''; }
     var codeKind = 'signup';
+    var hashNow = String(window.location.hash || '');
+    var recovering = /type=recovery/.test(hashNow);
+    var linkProblem = /error_code=|error=access_denied/.test(hashNow);
     function allForms(except) {
       ['auth-signup', 'auth-login', 'auth-reset', 'auth-newpw', 'auth-code'].forEach(function (id) { $(id).hidden = id !== except; });
     }
@@ -1109,7 +1112,7 @@
       if (pw.length < 8) { say('Please choose a password with at least 8 characters.'); return; }
       busy(this, true); say('Saving...');
       var f = this;
-      Auth.setPassword(pw).then(function (r) { busy(f, false); if (r.error) say(friendly(r.error)); else { say('Your new password is saved.'); recovering = false; render(); } });
+      Auth.setPassword(pw).then(function (r) { busy(f, false); if (r.error) say(friendly(r.error)); else { say('Your new password is saved.'); recovering = false; render(); afterAuth(); } });
     });
     $('auth-code').addEventListener('submit', function (ev) {
       ev.preventDefault();
@@ -1124,7 +1127,6 @@
         else say('You are in!');
       });
     });
-    var recovering = false;
     function showNewPw() { $('auth').hidden = false; $('auth-in').hidden = true; $('auth-tabs').hidden = true; allForms('auth-newpw'); enter.hidden = true; say(''); }
     $('code-back').addEventListener('click', function () { showTab('signup'); });
     function logout() {
@@ -1160,6 +1162,7 @@
     }
     function afterAuth() {
       render();
+      if (recovering) return;
       if (syncing) return; syncing = true;
       Auth.pull().then(function (row) {
         if (row && row.data && (row.data.savedAt || 0) > (S.savedAt || 0) + 500) {
@@ -1172,6 +1175,7 @@
       });
     }
     render();
+    if (linkProblem) { showTab('login'); say('That link has expired or was already used. Tap Forgot your password to get a fresh one.'); }
     if (configured) {
       Auth.onChange(function (ev, u) { if (ev === 'PASSWORD_RECOVERY') { recovering = true; $('splash').hidden = false; document.body.classList.add('modal-open'); showNewPw(); return; } if (u && ev === 'SIGNED_IN') { $('splash').hidden = $('splash').hidden; afterAuth(); } });
       Auth.boot().then(function (u) { if (u) afterAuth(); else render(); });
