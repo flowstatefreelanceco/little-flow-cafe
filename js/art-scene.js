@@ -1018,7 +1018,18 @@
     C.blit(g, sp.cv, tb.cx - sp.ax, tb.ty - sp.ay);
     mine.forEach(function (p) {
       var lx = Math.round(tb.cx + p.dx * 0.55), ly = Math.round(tb.ty + (p.dx === 0 ? -4 : 0)), k = Math.abs(Math.round(p.cx));
-      self.scaled(g, lx, ly, 1.15, function () { Pe.drawLaptop(lx, ly, (Pe.Options.laptopColors[p.spec.laptop] || '#e9e4da'), ['#f4a6b8', '#a8d5ba', '#bcd7f2', '#f5d98a', '#c9a7ff'][k % 5]); });
+      self.scaled(g, lx, ly, 1.2, function () { Pe.drawLaptop(lx, ly, (Pe.Options.laptopColors[p.spec.laptop] || '#e9e4da'), ['#f4a6b8', '#7fc4a0', '#8ab8e8', '#f5c84a', '#b48ae0'][k % 5], k % 4); });
+    });
+    mine.forEach(function (p) {
+      if (p.waveUntil > t || cheerP > 0) return;
+      var O = Pe.Options, skin = T(O.skin[p.spec.skin] || O.skin[2]), sl = T(O.outfitColors[p.spec.outfitColor] || O.outfitColors[0]);
+      var lx = Math.round(tb.cx + p.dx * 0.55), ly = Math.round(tb.ty + (p.dx === 0 ? -4 : 0));
+      var typing = mode !== 'break' && Math.sin(t * 0.6 + p.ph) > -0.35;
+      [-1, 1].forEach(function (d) {
+        var hx = lx + d * 21, hy = ly + 6 + (typing ? Math.sin(t * 13 + p.ph * 3 + d) * 0.7 : 0);
+        g.lineCap = 'round'; g.strokeStyle = sl; g.lineWidth = 4.6; g.beginPath(); g.moveTo(hx - d * 5, hy - 10); g.lineTo(hx - d * 1, hy - 1); g.stroke();
+        g.fillStyle = skin; g.beginPath(); g.ellipse(hx, hy, 3.2, 2.5, 0, 0, 6.2832); g.fill();
+      });
     });
     if (mode !== 'break') mine.forEach(function (p) {
       var cyc = (t * 0.22 + p.ph * 0.37) % 1;

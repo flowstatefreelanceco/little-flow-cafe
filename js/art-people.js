@@ -519,15 +519,24 @@
   }
 
   // back of a laptop lid, seen from across the table
-  function drawLaptop(cx, y, col, glow) {
-    col = col || '#e9e4da';
-    R(cx - 8, y - 10, 16, 10, col);
-    R(cx - 8, y - 10, 16, 1, shade(col, 0.4));
-    R(cx - 8, y - 1, 16, 1, shade(col, -0.18));
-    R(cx + 7, y - 10, 1, 10, shade(col, -0.1));
-    R(cx - 1, y - 6, 3, 3, glow || '#f4a6b8');
-    R(cx - 9, y, 18, 2, shade(col, -0.12));
-    R(cx - 9, y + 2, 18, 1, shade(col, -0.3));
+  function drawLaptop(cx, y, col, glow, k) {
+    col = col || '#e9e4da'; glow = glow || '#f4a6b8'; k = k || 0;
+    var dk = shade(col, -0.28), md = shade(col, -0.12), lt = shade(col, 0.4);
+    R(cx - 14, y - 18, 28, 17, dk);                 // lid edge
+    R(cx - 13, y - 17, 26, 15, col);               // lid
+    R(cx - 13, y - 17, 26, 2, lt);                 // top shine
+    R(cx - 13, y - 4, 26, 2, md);                  // lower lid shade
+    R(cx - 15, y - 1, 30, 2, dk);                  // hinge
+    R(cx - 16, y + 1, 32, 3, md);                  // base
+    R(cx - 16, y + 4, 32, 1, shade(col, -0.4));    // base shadow edge
+    R(cx - 5, y + 1, 10, 1, lt);                   // front lip
+    // a little sticker so every laptop is easy to tell apart
+    var s = k % 4;
+    if (s === 0) { R(cx - 3, y - 12, 6, 6, glow); R(cx - 4, y - 11, 8, 4, glow); R(cx - 2, y - 7, 4, 1, glow); }
+    else if (s === 1) { R(cx - 1, y - 14, 3, 9, glow); R(cx - 5, y - 10, 11, 3, glow); }
+    else if (s === 2) { R(cx - 6, y - 11, 12, 2, glow); R(cx - 6, y - 8, 12, 2, shade(glow, -0.15)); R(cx - 6, y - 14, 12, 2, shade(glow, 0.15)); }
+    else { R(cx - 4, y - 13, 8, 8, glow); R(cx - 2, y - 11, 4, 4, lt); }
+    R(cx - 11, y - 6, 3, 2, shade(col, -0.2));
   }
 
   // painted portrait: soft washes, a smooth upscale of the character, bleed and paper grain
