@@ -891,7 +891,7 @@
   function setupSignup() {
     var cfg = CFG.signup || { mode: 'off' };
     $('su-consent').textContent = CFG.consentText || '';
-    if (cfg.mode === 'off') { $('join').hidden = true; $('btn-join').hidden = true; return; }
+    if (cfg.mode === 'off') { $('join').hidden = true; return; }
     var form = $('signup'), status = $('su-status');
     form.setAttribute('name', cfg.formName || 'cafe-newsletter');
     form.querySelector('[name="form-name"]').value = cfg.formName || 'cafe-newsletter';
@@ -971,7 +971,7 @@
       case 'player': scene.heartAtPlayer(); openCharacter(); break;
       case 'npc': scene.waveAt(h.id); sfx('pop'); break;
       case 'cat': scene.petCat(); sfx('purr'); break;
-      case 'dog': scene.emit('heart', h.rect.x + 14, h.rect.y, 3, { spread: 6 }); sfx('pop'); toast('Waffles purred and kept washing his face.'); break;
+      case 'dog': scene.emit('heart', h.rect.x + 14, h.rect.y, 4, { spread: 8 }); sfx('purr'); toast('Waffles purred and kept washing his face.'); break;
       case 'pebble': scene.emit('heart', h.rect.x + 12, h.rect.y, 3, { spread: 6 }); sfx('purr'); break;
       case 'cards': openCards(); break;
       case 'fire': toggleFire(); break;
