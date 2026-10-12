@@ -484,3 +484,16 @@ canvas#scene, #scene { border-radius: 22px; border: 0; box-shadow: none; }
 .icon-btn { border: 1.5px solid #d9b79b; background: #fffaf0; color: #7a4630; }
 #top3 .text, #tasklist .text { background: none; border: 0; box-shadow: none; font: 700 0.98rem var(--font-body); color: var(--ink); text-align: left; flex: 1; min-width: 0; cursor: text; padding: 4px 2px; }
 .fine.how { margin: 6px 2px 8px; }
+
+/* compact sounds */
+.sounds-card { padding-top: 14px; padding-bottom: 14px; }
+.sounds-card h2 { font-size: 1.05rem; margin-bottom: 6px; }
+#sound-rows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 18px; }
+.sound-row { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "sw lb" "sw vol"; gap: 0 8px; padding: 5px 0; }
+.sound-row .switch { grid-area: sw; transform: scale(0.82); transform-origin: left center; width: 40px; }
+.sound-row label { grid-area: lb; font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sound-row small { display: none; }
+.sound-row input[type="range"] { grid-area: vol; width: 100%; height: 14px; }
+.sounds-card .master { margin-top: 6px; padding-top: 8px; font-size: 0.85rem; }
+.sounds-card .check-line { font-size: 0.82rem; margin-top: 6px; }
+@media (max-width: 520px) { #sound-rows { grid-template-columns: 1fr; } }

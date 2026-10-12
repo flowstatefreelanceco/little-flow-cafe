@@ -333,12 +333,12 @@
     }
   }
 
-  function checkerMug(g, x, y, s) { // x,y: bottom middle
+  function checkerMug(g, x, y, s, col) { // x,y: bottom middle
     s = s || 1;
     g.save(); g.translate(x, y); g.scale(s, s);
     box(g, -6, -11, 12, 11, '#f4ead6', 2.2);
     g.save(); rr(g, -6, -11, 12, 11, 2.2); g.clip();
-    for (var j = 0; j < 4; j++) for (var i = 0; i < 4; i++) if ((i + j) % 2 === 0) { g.fillStyle = T(PAL.navy); g.fillRect(-6 + i * 3, -11 + j * 2.75, 3, 2.75); }
+    for (var j = 0; j < 4; j++) for (var i = 0; i < 4; i++) if ((i + j) % 2 === 0) { g.fillStyle = T(col || PAL.navy); g.fillRect(-6 + i * 3, -11 + j * 2.75, 3, 2.75); }
     g.restore();
     g.strokeStyle = T('#f4ead6'); g.lineWidth = 1.8; g.beginPath(); g.arc(6.4, -5.6, 3, -1.45, 1.45); g.stroke();
     box(g, -6, -12, 12, 2, '#6a4a38', 1);
@@ -416,7 +416,7 @@
     }
     shelfBoard(SHELF1); shelfBoard(SHELF2);
     r = rng(14);
-    [372, 392, 408, 520].forEach(function (mx, k) { checkerMug(g, mx, SHELF1.y, 0.95 + (k % 2) * 0.05); });
+    [372, 392, 408, 520].forEach(function (mx, k) { checkerMug(g, mx, SHELF1.y, 0.95 + (k % 2) * 0.05, ['#4f7f6a', '#c9694a', '#e3a93a', '#7d4f96'][k]); });
     [[436, 5, 14, '#c4806a'], [441, 5, 17, '#d9a64e'], [446.6, 5, 15, '#8fa88a'], [452, 5, 12, '#7f9db3']].forEach(function (b) { box(g, b[0], SHELF1.y - b[2], b[1], b[2], b[3], 1); });
     [[487, 24], [498, 20]].forEach(function (j) { box(g, j[0], SHELF1.y - j[1], 9, j[1], '#e8dcc4', 2.5); box(g, j[0], SHELF1.y - j[1], 9, 4, PAL.terra, 1.5); });
     [372, 420, 452, 490].forEach(function (bx, k) { if (k === 1) { [0, 1, 2].forEach(function (q) { box(g, bx - 8, SHELF2.y - 4 - q * 4, 18 - q, 4, BOOKC[(q * 3 + 2) % BOOKC.length], 1); }); } else if (k === 2) miniPlant(g, bx, SHELF2.y, rng(7 + k)); else if (k === 3) { box(g, bx - 4, SHELF2.y - 18, 9, 18, '#e8dcc4', 2.5); box(g, bx - 4, SHELF2.y - 18, 9, 4, PAL.mustard, 1.5); } });
@@ -921,14 +921,14 @@
     [0, 1, 2, 3, 5, 6, 13, 14].forEach(function (id) { this.drawOnePlant(g, t, Pl.SLOTS[id]); }, this);
     // a little plant shelf on the chimney wall
     box(g, 62, 74, 76, 5, PAL.woodLt, 1.5); box(g, 62, 79, 76, 2, shade(PAL.wall, -0.2)); box(g, 70, 81, 4, 8, PAL.woodDk, 1); box(g, 126, 81, 4, 8, PAL.woodDk, 1);
-    [['trailMocha', 76, 74, 26], ['rubberBlue', 100, 74, 28], ['carnGold', 124, 74, 26]].forEach(function (d) { Pl.drawDecor(d[0], d[1], d[2], d[3], this.time); }, this);
+    [['trailMocha', 76, 74, 26], ['rubberBlue', 100, 74, 28, undefined, 'sage'], ['carnGold', 124, 74, 26]].forEach(function (d) { Pl.drawDecor(d[0], d[1], d[2], d[3], this.time, d[4], d[5]); }, this);
     // more plants in the wall shelves
-    [['rubberPlum', 372, 118, 26], ['astilbeHoney', 404, 118, 26], ['rubberCocoa', 466, 172, 26], ['rosePink', 512, 172, 24], ['trailBerry', 372, 172, 24]].forEach(function (d) { Pl.drawDecor(d[0], d[1], d[2], d[3], this.time); }, this);
+    [['rubberPlum', 372, 118, 26, undefined, 'teal'], ['astilbeHoney', 404, 118, 26], ['rubberCocoa', 466, 172, 26, undefined, 'mustard'], ['rosePink', 512, 172, 24], ['trailBerry', 372, 172, 24]].forEach(function (d) { Pl.drawDecor(d[0], d[1], d[2], d[3], this.time, d[4], d[5]); }, this);
     catSprite(g, 'tan', Math.floor(this.time * 2.5), TAN_CAT.x, TAN_CAT.y, CAT_SC);
-    [['rubber', 34, 66, 58], ['carnGold', 150, 146, 38], ['trailMocha', 556, 74, 44, 8],
+    [['rubber', 34, 66, 58, undefined, 'rose'], ['carnGold', 150, 146, 38], ['trailMocha', 556, 74, 44, 8],
      ['roseTeal', 438, 172, 28], ['bouquet', 168, 146, 34], ['roseTeal', 544, 118, 26], ['carnPink', 452, 118, 30], ['astilbePlum', 546, 172, 30], ['rosePink', 328, 201, 34], ['carnPink', 194, 201, 30], ['bouquet', 66, 200, 38], ['trailBerry', 255, 58, 40, 8], ['trailMocha', 470, 46, 30, 6], ['trailBerry', 506, 48, 30, 6], ['roseSage', 478, 118, 22]].forEach(function (d) {
       if (d[0] === 'bouquet') return;
-      Pl.drawDecor(d[0], d[1], d[2], d[3], t, d[4]);
+      Pl.drawDecor(d[0], d[1], d[2], d[3], t, d[4], d[5]);
     });
   };
   Scene.prototype.drawFloorPlant = function (g, t, id) {
@@ -970,10 +970,10 @@
     // espresso machine
     box(g, 362, top - 32, 38, 32, '#a9554a', 4); box(g, 362, top - 32, 38, 6, '#c9c2b8', 3); box(g, 366, top - 25, 30, 12, '#8d453d', 3);
     ell(g, 371, top - 19, 3.4, 3.4, '#e8e0d0'); ell(g, 387, top - 19, 3.4, 3.4, '#e8e0d0'); box(g, 374, top - 9, 12, 3, '#d9d0c0', 1.5);
-    box(g, 368, top - 3, 26, 3, '#4a3a38', 1.5); checkerMug(g, 381, top - 3, 0.7);
+    box(g, 368, top - 3, 26, 3, '#4a3a38', 1.5); checkerMug(g, 381, top - 3, 0.7, '#c9694a');
     var st1 = this.state.calm ? 0 : 1;
     for (var k = 0; k < 3 && st1; k++) { g.fillStyle = 'rgba(255,255,255,' + (0.5 - k * 0.14).toFixed(2) + ')'; g.beginPath(); g.arc(381 + Math.sin(t * 2 + k * 1.7) * 2.2, top - 14 - k * 5 - ((t * 6) % 3), 2.1 + k * 0.4, 0, 6.2832); g.fill(); }
-    checkerMug(g, 408, top, 1);
+    checkerMug(g, 408, top, 1, '#4f7f6a');
     // pastry case
     var cx0 = 488, cw = 60, cy0 = top - 36;
     box(g, cx0, cy0 + 28, cw, 8, PAL.woodDk, 2);
@@ -1042,9 +1042,9 @@
       g.restore();
     });
     tb.items.forEach(function (it) { var ix = Math.round(tb.cx + it.ox), iy = Math.round(tb.ty + it.oy); self.scaled(g, ix, iy, 1.25, function () { drawItem(it.k, ix, iy, t); }); });
-    if (tb.id === 'fr') { this.drawOnePlant(g, t, Pl.SLOTS[7]); Pl.drawDecor('rubberBlue', tb.cx + 28, tb.ty - 2, 28, t); }
-    if (tb.id === 'fl') Pl.drawDecor('rubber', tb.cx - 20, tb.ty - 3, 28, t);
-    if (tb.id === 'back') { Pl.drawDecor('rubberPlum', tb.cx - 17, tb.ty - 3, 24, t); Pl.drawDecor('roseSage', tb.cx + 18, tb.ty - 3, 26, t); }
+    if (tb.id === 'fr') { this.drawOnePlant(g, t, Pl.SLOTS[7]); Pl.drawDecor('rubberBlue', tb.cx + 28, tb.ty - 2, 28, t, null, 'clay'); }
+    if (tb.id === 'fl') Pl.drawDecor('rubber', tb.cx - 20, tb.ty - 3, 28, t, null, 'cream');
+    if (tb.id === 'back') { Pl.drawDecor('rubberPlum', tb.cx - 17, tb.ty - 3, 24, t, null, 'navy'); Pl.drawDecor('roseSage', tb.cx + 18, tb.ty - 3, 26, t); }
     if (tb.id === 'fl') this.drawOnePlant(g, t, Pl.SLOTS[15]);
   };
 
@@ -1143,7 +1143,7 @@
         catSprite(g, 'sleep', Math.floor(t * 2) + 1, bx, by - 2, CAT_SC);
         g.fillStyle = T('#d8a47c'); g.beginPath(); g.ellipse(bx, by + 1, 21, 4.2, 0, 0, Math.PI); g.fill(); } }
     ];
-    list.push({ y: 432, fn: function () { Pl.drawDecor('rubberCocoa', 26, 432, 78, t); } });
+    list.push({ y: 432, fn: function () { Pl.drawDecor('rubberCocoa', 26, 432, 78, t, null, 'teal'); } });
     list.push({ y: TOWER.y, fn: function () { self.softShadow(g, TOWER.x, TOWER.y + 1, 22, 4, 0.22); catSprite(g, 'tower', 0, TOWER.x, TOWER.y, CAT_SC); catSprite(g, 'tan', Math.floor(t * 2.5) + 2, self.dogPos.x, self.dogPos.y, CAT_SC, true); } });
     TABLES.forEach(function (tb) { list.push({ y: tb.ty + 38, fn: function () { self.drawTableGroup(g, t, tb); } }); });
     list.sort(function (a, b) { return a.y - b.y; });

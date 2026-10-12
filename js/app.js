@@ -14,7 +14,16 @@
     { id: 'plates', label: 'Plates clinking', hint: 'Now and then' },
     { id: 'keys', label: 'Keyboard clicks', hint: 'Other people typing' },
     { id: 'rain', label: 'Rain', hint: 'On the window' },
-    { id: 'music', label: 'Lo-fi music', hint: 'Slow and warm' }
+    { id: 'music', label: 'Lo-fi music', hint: 'Slow and warm' },
+    { id: 'jazz', label: 'Late night jazz', hint: 'Soft piano and brushes' },
+    { id: 'pads', label: 'Dreamy pads', hint: 'Slow, warm chords' },
+    { id: 'chimes', label: 'Wind chimes', hint: 'A breeze on the porch' },
+    { id: 'birds', label: 'Morning birds', hint: 'Garden songs' },
+    { id: 'storm', label: 'Thunderstorm', hint: 'Rain and far off thunder' },
+    { id: 'wind', label: 'Gentle wind', hint: 'Soft gusts outside' },
+    { id: 'crickets', label: 'Night crickets', hint: 'A warm evening' },
+    { id: 'brown', label: 'Brown noise', hint: 'Deep, steady focus' },
+    { id: 'coffee', label: 'Espresso machine', hint: 'Steam and a gurgle' }
   ];
   var TIME_CHIPS = [['auto', 'Real time'], ['morning', 'Morning'], ['day', 'Daytime'], ['golden', 'Golden hour'], ['evening', 'Evening'], ['night', 'Night']];
   var WX_CHIPS = [['clear', 'Clear'], ['cloudy', 'Cloudy'], ['rain', 'Rainy'], ['snow', 'Snowy']];
@@ -51,6 +60,7 @@
   function load() {
     try {
       var raw = window.localStorage.getItem(KEY);
+      if (!raw) raw = window.localStorage.getItem(KEY + '.bak');
       if (raw) return JSON.parse(raw);
     } catch (e) { storageOk = false; }
     return memStore;
@@ -82,15 +92,23 @@
     return d;
   })();
   var saveTimer = 0;
+  function writeLocal() {
+    S.savedAt = Date.now();
+    var json = JSON.stringify(S);
+    try { window.localStorage.setItem(KEY, json); window.localStorage.setItem(KEY + '.bak', json); } catch (e) { storageOk = false; showSaveNote(); }
+  }
   function save() {
     memStore = S;
-    S.savedAt = Date.now();
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(function () {
-      try { window.localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { storageOk = false; showSaveNote(); }
-      cloudSoon();
-    }, 150);
+    writeLocal();
+    cloudSoon();
   }
+  function flushNow() {
+    writeLocal();
+    if (Auth && Auth.user && Auth.user() && !pristine()) { try { Auth.push(S); } catch (e) { /* ignore */ } }
+  }
+  function pristine() { return !S.hasChar && !(S.tasks && S.tasks.length) && !S.points; }
+  window.addEventListener('pagehide', flushNow);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flushNow(); });
   function showSaveNote() {
     $('save-note').textContent = storageOk
       ? ((window.Cafe.Auth && Cafe.Auth.user && Cafe.Auth.user()) ? 'Your list is saved to your account.' : 'Your list is saved on this device. Log in to keep it everywhere.')
@@ -547,7 +565,7 @@
         save();
       });
       vol.addEventListener('input', function () { s.vol = vol.value / 100; applySound(d.id); save(); });
-      box.appendChild(el('div', { class: 'sound-row' }, [sw, el('label', { for: 'sw-' + d.id }, [d.label, el('small', { text: d.hint })]), vol]));
+      box.appendChild(el('div', { class: 'sound-row', title: d.hint }, [sw, el('label', { for: 'sw-' + d.id }, [d.label, el('small', { text: d.hint })]), vol]));
     });
     $('master-vol').value = String(Math.round(S.master * 100));
     $('sfx').checked = !!S.sfx;
@@ -988,7 +1006,7 @@
   function cloudSoon() {
     if (!Auth || !Auth.user()) return;
     clearTimeout(cloudTimer);
-    cloudTimer = setTimeout(function () { Auth.push(S); }, 4000);
+    cloudTimer = setTimeout(function () { if (!pristine()) Auth.push(S); }, 1200);
   }
   function friendly(err) {
     var m = String(err || '').toLowerCase();
@@ -1051,7 +1069,7 @@
     $('code-back').addEventListener('click', function () { showTab('signup'); });
     function logout() {
       Auth.push(S).then(function () { return Auth.signOut(); }).then(function () {
-        try { window.localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
+        try { window.localStorage.removeItem(KEY); window.localStorage.removeItem(KEY + '.bak'); } catch (e) { /* ignore */ }
         window.location.reload();
       });
     }
@@ -1084,7 +1102,8 @@
           window.location.reload();
           return;
         }
-        return Auth.push(S).then(function () { syncing = false; });
+        syncing = false;
+        return pristine() ? null : Auth.push(S);
       });
     }
     render();

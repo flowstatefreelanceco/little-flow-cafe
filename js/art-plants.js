@@ -161,8 +161,34 @@
   }
 
   /* extra plants that live in the cafe all the time (not part of the garden) */
-  function drawDecor(id, x, y, h, t, hook) {
-    var v = VBY[id], img = tinted(id, 0); if (!v || !img) return;
+  /* swap the pot colour on the rubber plants (pot = hue 0-360 plus saturation) */
+  var POTS = { clay: [18, 0.62], sky: [208, 0.38], plum: [292, 0.34], teal: [182, 0.45], mustard: [42, 0.7], rose: [350, 0.5], sage: [100, 0.28], cream: [38, 0.45], cocoa: [20, 0.3], navy: [222, 0.42] };
+  var potCache = {};
+  function potted(id, pot) {
+    var key = id + '|' + pot, c = potCache[key], e = IMG[id], P = POTS[pot];
+    if (c) return c;
+    if (!e || !P || !e.im.complete || !e.im.naturalWidth) return null;
+    var W = e.im.naturalWidth, H = e.im.naturalHeight;
+    c = document.createElement('canvas'); c.width = W; c.height = H;
+    var g = c.getContext('2d'); g.drawImage(e.im, 0, 0);
+    var y0 = Math.floor(H * 0.68), d = g.getImageData(0, y0, W, H - y0), px = d.data, i;
+    for (i = 0; i < px.length; i += 4) {
+      if (!px[i + 3]) continue;
+      var r = px[i] / 255, gg = px[i + 1] / 255, b = px[i + 2] / 255, mx = Math.max(r, gg, b), mn = Math.min(r, gg, b), l = (mx + mn) / 2, dl = mx - mn;
+      if (dl < 0.09) continue;                       // dark outline
+      var sat = dl / (1 - Math.abs(2 * l - 1) || 1);
+      var nl = Math.max(0.12, Math.min(0.9, l + (P[2] || 0)));
+      var ns = Math.min(0.9, P[1] * (0.7 + sat * 0.5));
+      var q = nl < 0.5 ? nl * (1 + ns) : nl + ns - nl * ns, p = 2 * nl - q, hh = P[0] / 360;
+      function f(tt) { if (tt < 0) tt += 1; if (tt > 1) tt -= 1; return tt < 1 / 6 ? p + (q - p) * 6 * tt : tt < 0.5 ? q : tt < 2 / 3 ? p + (q - p) * (2 / 3 - tt) * 6 : p; }
+      px[i] = Math.round(f(hh + 1 / 3) * 255); px[i + 1] = Math.round(f(hh) * 255); px[i + 2] = Math.round(f(hh - 1 / 3) * 255);
+    }
+    g.putImageData(d, 0, y0);
+    potCache[key] = c;
+    return c;
+  }
+  function drawDecor(id, x, y, h, t, hook, pot) {
+    var v = VBY[id], img = (pot && potted(id, pot)) || tinted(id, 0); if (!v || !img) return;
     var w = h * img.width / img.height, g = C.ctx();
     var ang = Math.sin(t * 0.7 + x * 0.13) * 0.022;
     g.save(); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';

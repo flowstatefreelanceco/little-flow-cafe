@@ -7,7 +7,7 @@
   function midi(m) { return 440 * Math.pow(2, (m - 69) / 12); }
 
   // how loud each layer is at slider = 100%
-  var LAYER_GAIN = { waves: 0.8, fire: 0.9, chat: 0.55, plates: 0.8, keys: 0.7, rain: 0.75, music: 0.6 };
+  var LAYER_GAIN = { waves: 0.8, fire: 0.9, chat: 0.55, plates: 0.8, keys: 0.7, rain: 0.75, music: 0.6, jazz: 0.6, pads: 0.55, chimes: 0.7, birds: 0.6, storm: 0.8, brown: 0.7, crickets: 0.5, wind: 0.7, coffee: 0.8 };
 
   function makeNoise(ctx, seconds, type) {
     var n = Math.floor(ctx.sampleRate * seconds);
@@ -383,6 +383,153 @@
       while (next < ctx.currentTime + 0.4) { schedule(n, next); next += step; n++; }
     }, 80);
     return function () { alive = false; clearInterval(timer); try { vin.stop(); } catch (e) { /* ignore */ } };
+  };
+
+
+  /* ---------- more ambient layers ---------- */
+  LAYERS.jazz = function (E, out) {
+    // slow late-night piano trio: soft chords, a walking bass, brushed hats
+    var ctx = E.ctx, alive = true;
+    var bus = ctx.createGain(); bus.gain.value = 0.9;
+    var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200; lp.Q.value = 0.3;
+    bus.connect(lp); lp.connect(out);
+    var wet = ctx.createGain(), conv = ctx.createConvolver(); wet.gain.value = 0.28; conv.buffer = E.buf.ir;
+    lp.connect(wet); wet.connect(conv); conv.connect(out);
+    var bpm = Math.floor(rand(56, 66)), step = 60 / bpm / 3;
+    var prog = [[50, 'min7'], [55, 'dom7'], [48, 'maj7'], [45, 'dom7'], [50, 'min7'], [55, 'dom7'], [48, 'maj7'], [48, 'maj7']];
+    var types = { maj7: [0, 4, 7, 11], min7: [0, 3, 7, 10], dom7: [0, 4, 7, 10] };
+    var sc = { maj7: [0, 2, 4, 7, 9, 11], min7: [0, 2, 3, 5, 7, 10], dom7: [0, 2, 4, 5, 7, 10] };
+    function piano(freq, t, dur, amp) {
+      E.tone(bus, { freq: freq, amp: amp, dur: dur, t: t, attack: 0.006 });
+      E.tone(bus, { freq: freq * 2, type: 'triangle', amp: amp * 0.3, dur: dur * 0.5, t: t, attack: 0.004 });
+      E.tone(bus, { freq: freq * 3, amp: amp * 0.08, dur: dur * 0.25, t: t, attack: 0.004 });
+    }
+    function schedule(idx, t) {
+      var bar = Math.floor(idx / 12) % prog.length, s = idx % 12, ch = prog[bar], root = ch[0], ints = types[ch[1]];
+      if (s === 0 || (s === 7 && Math.random() < 0.6)) ints.forEach(function (iv, k) { piano(midi(root + 12 + iv), t + k * 0.02 + (s ? 0.03 : 0), step * (s ? 4 : 8), 0.04); });
+      if (s % 3 === 0) E.tone(bus, { freq: midi(root - 12 + ints[(s / 3) % 4 | 0] % 12), amp: 0.16, dur: step * 2.6, t: t, attack: 0.012 });
+      if (s % 3 === 0 || s % 3 === 2) E.burst(bus, { freq: 8200, q: 0.6, amp: s % 6 === 0 ? 0.03 : 0.018, dur: 0.05, t: t + (s % 3 === 2 ? step * 0.15 : 0), type: 'highpass' });
+      if (Math.random() < 0.28) { var sa = sc[ch[1]]; piano(midi(root + 24 + sa[Math.floor(Math.random() * sa.length)]), t + step * 0.1, rand(0.7, 1.4), 0.034); }
+    }
+    var next = ctx.currentTime + 0.15, n = 0;
+    var timer = setInterval(function () { if (!alive) return; while (next < ctx.currentTime + 0.4) { schedule(n, next); next += step; n++; } }, 80);
+    return function () { alive = false; clearInterval(timer); };
+  };
+
+  LAYERS.pads = function (E, out) {
+    // slow, warm chords that drift like a sunrise
+    var ctx = E.ctx, alive = true, timer = null;
+    var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1500; lp.connect(out);
+    var wet = ctx.createGain(), conv = ctx.createConvolver(); wet.gain.value = 0.5; conv.buffer = E.buf.ir; lp.connect(wet); wet.connect(conv); conv.connect(out);
+    var chords = [[48, 55, 59, 64], [45, 52, 57, 60], [53, 57, 60, 64], [50, 55, 59, 62]], ci = Math.floor(Math.random() * 4);
+    function swell() {
+      if (!alive) return;
+      var t = ctx.currentTime, ch = chords[ci++ % 4], dur = 9;
+      ch.forEach(function (m, k) {
+        [0, 0.07].forEach(function (dt) {
+          var o = ctx.createOscillator(); o.type = k % 2 ? 'sine' : 'triangle'; o.frequency.value = midi(m) * (1 + dt * 0.01);
+          var g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05, t + 4); g.gain.linearRampToValueAtTime(0.0001, t + dur + 1);
+          o.connect(g); g.connect(lp); o.start(t); o.stop(t + dur + 1.2);
+        });
+      });
+      timer = setTimeout(swell, 6500);
+    }
+    swell();
+    return function () { alive = false; clearTimeout(timer); };
+  };
+
+  LAYERS.chimes = function (E, out) {
+    var ctx = E.ctx, alive = true, timer = null, pen = [74, 76, 79, 81, 84, 86, 88];
+    var wet = ctx.createGain(), conv = ctx.createConvolver(); wet.gain.value = 0.4; conv.buffer = E.buf.ir; wet.connect(conv); conv.connect(out);
+    function ring() {
+      if (!alive) return;
+      var n = 1 + Math.floor(Math.random() * 4), t = ctx.currentTime;
+      for (var i = 0; i < n; i++) { var f = midi(pen[Math.floor(Math.random() * pen.length)]), at = t + i * rand(0.15, 0.5); E.ping(out, f, 0.07, 2.4, at); E.ping(wet, f, 0.05, 2.4, at); }
+      timer = setTimeout(ring, rand(2500, 7000));
+    }
+    ring();
+    return function () { alive = false; clearTimeout(timer); };
+  };
+
+  LAYERS.birds = function (E, out) {
+    var ctx = E.ctx, alive = true, timer = null;
+    function chirp(t, base, pan) {
+      var n = 2 + Math.floor(Math.random() * 4);
+      for (var i = 0; i < n; i++) E.tone(out, { freq: base * rand(0.95, 1.1), freqEnd: base * rand(1.2, 1.6), amp: 0.045, dur: rand(0.05, 0.1), t: t + i * rand(0.09, 0.14), attack: 0.01 });
+    }
+    function phrase() {
+      if (!alive) return;
+      var base = rand(2200, 3800), t = ctx.currentTime, reps = 1 + Math.floor(Math.random() * 3);
+      for (var r = 0; r < reps; r++) chirp(t + r * 0.7, base * (r % 2 ? 0.9 : 1));
+      timer = setTimeout(phrase, rand(1800, 6500));
+    }
+    phrase();
+    return function () { alive = false; clearTimeout(timer); };
+  };
+
+  LAYERS.storm = function (E, out) {
+    // steady rain plus far-off thunder
+    var ctx = E.ctx, alive = true, timer = null;
+    var p = E.loop('pink'), hp = ctx.createBiquadFilter(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
+    hp.type = 'highpass'; hp.frequency.value = 500; lp.type = 'lowpass'; lp.frequency.value = 5200; g.gain.value = 0.3;
+    p.connect(hp); hp.connect(lp); lp.connect(g); g.connect(out);
+    function thunder() {
+      if (!alive) return;
+      var t = ctx.currentTime, b = E.loop('brown'), f = ctx.createBiquadFilter(), tg = ctx.createGain();
+      f.type = 'lowpass'; f.frequency.setValueAtTime(220, t); f.frequency.linearRampToValueAtTime(70, t + 4);
+      tg.gain.setValueAtTime(0.0001, t); tg.gain.linearRampToValueAtTime(rand(0.5, 0.9), t + rand(0.4, 1.2)); tg.gain.exponentialRampToValueAtTime(0.0001, t + rand(3.5, 6));
+      b.connect(f); f.connect(tg); tg.connect(out); setTimeout(function () { try { b.stop(); } catch (e) { /* ignore */ } }, 7000);
+      timer = setTimeout(thunder, rand(14000, 30000));
+    }
+    timer = setTimeout(thunder, rand(3000, 8000));
+    return function () { alive = false; clearTimeout(timer); try { p.stop(); } catch (e) { /* ignore */ } };
+  };
+
+  LAYERS.brown = function (E, out) {
+    var ctx = E.ctx, b = E.loop('brown'), lp = ctx.createBiquadFilter(), g = ctx.createGain();
+    lp.type = 'lowpass'; lp.frequency.value = 700; g.gain.value = 0.35; b.connect(lp); lp.connect(g); g.connect(out);
+    return function () { try { b.stop(); } catch (e) { /* ignore */ } };
+  };
+
+  LAYERS.crickets = function (E, out) {
+    var ctx = E.ctx, alive = true, timer = null;
+    function trill() {
+      if (!alive) return;
+      var t = ctx.currentTime, base = rand(4200, 5000), n = 3 + Math.floor(Math.random() * 3);
+      for (var i = 0; i < n; i++) { E.tone(out, { freq: base, amp: 0.025, dur: 0.05, t: t + i * 0.085, attack: 0.012 }); E.tone(out, { freq: base * 1.01, amp: 0.012, dur: 0.05, t: t + i * 0.085 }); }
+      timer = setTimeout(trill, rand(500, 1800));
+    }
+    trill();
+    return function () { alive = false; clearTimeout(timer); };
+  };
+
+  LAYERS.wind = function (E, out) {
+    var ctx = E.ctx, alive = true, timer = null;
+    var n = E.loop('pink'), bp = ctx.createBiquadFilter(), g = ctx.createGain();
+    bp.type = 'bandpass'; bp.frequency.value = 500; bp.Q.value = 0.7; g.gain.value = 0.1; n.connect(bp); bp.connect(g); g.connect(out);
+    function gust() {
+      if (!alive) return;
+      var t = ctx.currentTime, rise = rand(2, 4), fall = rand(3, 6);
+      g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.linearRampToValueAtTime(rand(0.3, 0.55), t + rise); g.gain.linearRampToValueAtTime(0.08, t + rise + fall);
+      bp.frequency.cancelScheduledValues(t); bp.frequency.setValueAtTime(bp.frequency.value, t); bp.frequency.linearRampToValueAtTime(rand(700, 1100), t + rise); bp.frequency.linearRampToValueAtTime(380, t + rise + fall);
+      timer = setTimeout(gust, (rise + fall) * 1000);
+    }
+    gust();
+    return function () { alive = false; clearTimeout(timer); try { n.stop(); } catch (e) { /* ignore */ } };
+  };
+
+  LAYERS.coffee = function (E, out) {
+    // the espresso machine: a hiss, a gurgle, now and then
+    var ctx = E.ctx, alive = true, timer = null;
+    function brew() {
+      if (!alive) return;
+      var t = ctx.currentTime;
+      E.burst(out, { freq: 5200, q: 0.6, amp: 0.1, dur: 2.2, t: t, type: 'highpass' });
+      for (var i = 0; i < 6; i++) E.tone(out, { freq: rand(160, 260), freqEnd: rand(300, 420), amp: 0.04, dur: 0.12, t: t + 2.3 + i * 0.16 });
+      timer = setTimeout(brew, rand(14000, 32000));
+    }
+    timer = setTimeout(brew, 2000);
+    return function () { alive = false; clearTimeout(timer); };
   };
 
   /* ---------- gentle sound effects ---------- */
