@@ -69,7 +69,7 @@
     var snd = {};
     SOUNDS.forEach(function (s) { snd[s.id] = { on: s.id === 'waves' || s.id === 'music', vol: s.id === 'waves' ? 0.45 : (s.id === 'music' ? 0.28 : 0.5) }; });
     return {
-      v: 1, savedAt: 0, char: Pe.defaultSpec(), hasChar: false, day: dayKey(), tasks: [],
+      v: 1, savedAt: 0, char: Pe.defaultSpec(), hasChar: false, day: dayKey(), tasks: [], guide: false,
       plants: {}, points: 0, sessions: 0, minutes: 0, tasksDone: 0, streak: { count: 0, last: '' },
       sounds: snd, master: 0.8, muted: false, sfx: true,
       vibes: { time: 'auto', wx: 'clear' }, calm: false,
@@ -846,6 +846,39 @@
   $('btn-char').addEventListener('click', openCharacter);
   if ($('btn-char2')) $('btn-char2').addEventListener('click', openCharacter);
 
+  /* ---------- how it works (a short guide) ---------- */
+  var GUIDE = [
+    { t: 'Welcome to Little flow cafe', p: 'A cozy place to body double. Everyone here is quietly working on something, and you can too. This quick tour shows you around.', b: [] },
+    { t: 'Make it yours', p: 'That is you at the table.', b: ['Tap My character to choose your look, hair, outfit, eye color, and even your laptop color.', 'You can change it any time, or tap yourself in the cafe.'] },
+    { t: 'Start a focus session', p: 'Use the timer on the right to settle in together.', b: ['Choose Focus, pick how long, and press Start focus.', 'Break is for a rest, and Just vibes is for hanging out with no countdown.', 'Everyone in the cafe works along with you.'] },
+    { t: 'Add your tasks', p: 'Keep it small and doable.', b: ['Add a task, then tap the star to move it into Today\u2019s top 3.', 'Tap the circle to check a task off, and the x to delete it.', 'Open My tasks at the top to see everything in one place.'] },
+    { t: 'Earn stars, grow plants', p: 'Finishing things brings new plants into the cafe.', b: ['A finished task is one star in your jar, and a focus session counts for two.', 'New plants move in one at a time as your stars add up.', 'Water your plants from the Your plants card, and open the greenhouse to see them all, even the ones still to come.'] },
+    { t: 'Pick a card', p: 'A little thought for your day.', b: ['Tap the table on the left, or Daily card at the top, and choose one of three cards.', 'It might be sweet, or it might be sassy.'] },
+    { t: 'Set the mood', p: 'Make it feel like your kind of cafe.', b: ['Under Sounds, switch on rain, jazz, birds, a fireplace and more, and mix the volumes.', 'Under Cafe vibes, change the time of day and the weather.', 'Tap the cats, the barista, the lights, the window, and the avocado chair to see what happens.'] },
+    { t: 'Keep your progress', p: 'Your list saves on this device.', b: ['Log in or sign up to keep your tasks and plants everywhere.', 'Going away for a bit? Vacation mode keeps your plants happy until you are back.', 'You can open this guide again any time with How it works.'] }
+  ];
+  var guideStep = 0, guideSeen = false;
+  function renderGuide() {
+    var g = GUIDE[guideStep];
+    $('guide-h').textContent = g.t; $('guide-text').textContent = g.p;
+    $('guide-count').textContent = (guideStep + 1) + ' of ' + GUIDE.length;
+    var ol = $('guide-bullets'); ol.innerHTML = ''; ol.hidden = !g.b.length;
+    g.b.forEach(function (x) { ol.appendChild(el('li', { text: x })); });
+    var dots = $('guide-dots'); dots.innerHTML = '';
+    GUIDE.forEach(function (_, i) { dots.appendChild(el('span', { class: i === guideStep ? 'on' : '' })); });
+    $('guide-back').hidden = guideStep === 0;
+    $('guide-next').textContent = guideStep === GUIDE.length - 1 ? 'Got it' : 'Next';
+  }
+  function openGuide() { guideStep = 0; renderGuide(); openModal('modal-guide'); }
+  $('guide-next').addEventListener('click', function () { if (guideStep >= GUIDE.length - 1) closeModal($('modal-guide')); else { guideStep++; renderGuide(); } });
+  $('guide-back').addEventListener('click', function () { if (guideStep > 0) { guideStep--; renderGuide(); } });
+  $('btn-guide').addEventListener('click', openGuide);
+  new MutationObserver(function () {
+    if (!$('modal-guide').hidden) return;
+    if (!S.guide) { S.guide = true; save(); }
+    if (!S.hasChar && guideSeen) { guideSeen = false; setTimeout(openCharacter, 200); }
+  }).observe($('modal-guide'), { attributes: true, attributeFilter: ['hidden'] });
+
   /* ---------- daily card ---------- */
   var todaysCards = null;
   function pickToday() {
@@ -1003,7 +1036,7 @@
         var order = ['clear', 'cloudy', 'rain', 'snow'], nx = order[(order.indexOf(S.vibes.wx) + 1) % order.length];
         S.vibes.wx = nx; save(); renderVibes(); syncScene(); sfx('pop'); break;
       case 'books': toast('Save a good book for your next break.'); break;
-      case 'avocado': scene.hugAvocado(); sfx('purr'); toast('The avocado chair gives the best hugs.'); break;
+      case 'avocado': scene.hugAvocado(); sfx('pop'); toast('The avocado chair gives the best hugs.'); break;
       case 'tomato': sfx('pop'); toast('Sliced tomato, extra cozy.'); break;
       case 'barista': scene.waveBarista(); sfx('pop'); toast('Pia slides over something warm. Take your time.'); break;
       case 'counter': sfx('pop'); toast('Fresh pastries, all made this morning.'); break;
@@ -1202,7 +1235,8 @@
       $('splash').hidden = true;
       document.body.classList.remove('modal-open');
       checkDay();
-      if (!S.hasChar) setTimeout(openCharacter, 250);
+      if (!S.hasChar && !S.guide) { guideSeen = true; setTimeout(openGuide, 250); }
+      else if (!S.hasChar) setTimeout(openCharacter, 250);
       else toast('Welcome back to the cafe.');
     });
     var f = $('enter'); if (f) f.focus();

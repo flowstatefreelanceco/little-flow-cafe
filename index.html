@@ -89,6 +89,7 @@
       <button id="btn-char" class="btn ghost" type="button">My character</button>
       <button id="btn-house" class="btn ghost" type="button">Greenhouse</button>
       <button id="btn-tasks" class="btn ghost" type="button">My tasks</button>
+      <button id="btn-guide" class="btn ghost" type="button">How it works</button>
       <button id="btn-cards" class="btn ghost" type="button">Daily card</button>
       <button id="btn-acct" class="btn ghost" type="button" hidden>Log in or sign up</button>
       <button id="btn-logout" class="btn ghost" type="button" hidden>Log out</button>
@@ -250,6 +251,24 @@
       <h3 class="house-sub">Plant collection</h3>
       <p class="fine" id="house-coll-note"></p>
       <div class="house-grid small" id="house-coll"></div>
+    </div>
+  </div>
+
+  <!-- Guide -->
+  <div id="modal-guide" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="guide-h">
+    <div class="modal-card narrow guide-card">
+      <div class="modal-head">
+        <p class="guide-count fine" id="guide-count"></p>
+        <button type="button" class="btn ghost" data-close>Skip</button>
+      </div>
+      <h2 id="guide-h">Welcome</h2>
+      <p class="guide-text" id="guide-text"></p>
+      <ol class="guide-bullets" id="guide-bullets"></ol>
+      <div class="guide-dots" id="guide-dots" aria-hidden="true"></div>
+      <div class="btn-row guide-nav">
+        <button type="button" class="btn ghost" id="guide-back">Back</button>
+        <button type="button" class="btn primary" id="guide-next" data-autofocus>Next</button>
+      </div>
     </div>
   </div>
 
