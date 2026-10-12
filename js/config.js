@@ -31,7 +31,7 @@ window.CAFE_CONFIG = {
     'Feel free to opt out after your first issue.',
 
   // Points needed (tasks count 1, focus sessions count 2) to move a new plant in.
-  plantUnlockPoints: [0, 0, 0, 0, 4, 9, 15, 22, 30, 40, 52, 64, 78, 92, 108, 125],
+  plantUnlockPoints: [0, 2, 4, 7, 10, 14, 19, 25, 32, 40, 50, 62, 76, 92, 108, 125],
 
   // Hours before a plant gets thirsty, then sleepy (a finished task wakes it up).
   thirstyAfterHours: 36,

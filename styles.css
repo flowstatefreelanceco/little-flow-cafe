@@ -467,3 +467,5 @@ canvas#scene, #scene { border-radius: 22px; border: 0; box-shadow: none; }
 .plant-list select { flex: 1 1 200px; }
 .plant-list small { flex: 1 1 100%; margin: -2px 0 4px 24px; text-align: left; }
 .plant-list select { width: auto; max-width: 100%; }
+.side .jar-card .jar-wrap { gap: 10px; }
+.side #jar { width: 120px; }

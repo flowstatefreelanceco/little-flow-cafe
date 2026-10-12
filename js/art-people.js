@@ -200,14 +200,23 @@
 
     // seat
     if (s.seat === 'wheelchair') {
+      var wr = 9.4, wy = T + 1.8;
       [-1, 1].forEach(function (d) {
-        var wx = cx + d * (bw / 2 + 5), wy = T + 5;
-        g.beginPath(); g.arc(wx, wy, 8.2, 0, 6.2832); g.lineWidth = 1.7; g.strokeStyle = '#4a5068'; g.stroke();
-        g.beginPath(); g.arc(wx, wy, 6.9, 0, 6.2832); g.lineWidth = 0.6; g.strokeStyle = '#9aa1b8'; g.stroke();
-        g.beginPath(); g.arc(wx, wy, 1.4, 0, 6.2832); g.fillStyle = '#9aa1b8'; g.fill();
+        var wx = cx + d * (bw / 2 + 5.5);
+        g.beginPath(); g.arc(wx, wy, wr, 0, 6.2832); g.lineWidth = 2.1; g.strokeStyle = '#3f4558'; g.stroke();
+        g.beginPath(); g.arc(wx, wy, wr - 2.4, 0, 6.2832); g.lineWidth = 0.7; g.strokeStyle = '#c3c9db'; g.stroke();
+        g.strokeStyle = '#9aa1b8'; g.lineWidth = 0.45;
+        for (var k = 0; k < 8; k++) { var an = k * 0.7854 + t * 0.0; g.beginPath(); g.moveTo(wx, wy); g.lineTo(wx + Math.cos(an) * (wr - 2.6), wy + Math.sin(an) * (wr - 2.6)); g.stroke(); }
+        g.beginPath(); g.arc(wx, wy, 1.7, 0, 6.2832); g.fillStyle = '#e3e7f1'; g.fill();
+        g.beginPath(); g.arc(wx, wy, 0.7, 0, 6.2832); g.fillStyle = '#6d7690'; g.fill();
       });
-      RRc(cx - bw / 2 - 1.5, T - 14, bw + 3, 19, 4, '#6d7690');
-      RRc(cx - bw / 2 - 3.5, T - 16, 3.5, 4, 1.7, '#4a5068'); RRc(cx + bw / 2, T - 16, 3.5, 4, 1.7, '#4a5068');
+      RRc(cx - bw / 2 - 1.2, T - 19, bw + 2.4, 23, 4, '#66708d');
+      glow(cx - bw / 2 + 2, T - 14, 1.6, 4, '#ffffff', 0.25);
+      RRc(cx - bw / 2 - 2.6, T - 3, bw + 5.2, 6, 3, '#838cab');
+      [-1, 1].forEach(function (d) {
+        capsule(cx + d * (bw / 2 + 1.6) - 1.1, T - 21, 2.2, 6, '#3f4558');
+        RRc(cx + d * (bw / 2 + 1.6) - 2, T - 8, 4, 2, 1, '#3f4558');
+      });
     } else {
       var cc = a.chair || '#c9805f';
       RRc(cx - bw / 2 - 2.5, T - 14, bw + 5, 19, 5.5, cc);

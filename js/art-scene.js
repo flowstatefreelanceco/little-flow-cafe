@@ -204,6 +204,29 @@
     }
   }
 
+  /* ---------- Jess's own cat artwork ---------- */
+  var CAT_IMG = null;
+  function catFrames() {
+    if (CAT_IMG) return CAT_IMG;
+    var src = window.CafeCatArt; if (!src) return null;
+    CAT_IMG = {};
+    ['tan', 'white', 'sleep'].forEach(function (k) {
+      CAT_IMG[k] = src[k].map(function (f) { var im = new Image(); im.src = f.uri; im.w = f.w; im.h = f.h; return im; });
+    });
+    return CAT_IMG;
+  }
+  function catSprite(g, kind, frame, x, y, sc, flip) {
+    var fr = catFrames(); if (!fr) return;
+    var im = fr[kind][frame % fr[kind].length]; if (!im.complete || !im.naturalWidth) return;
+    var w = im.w * sc, h = im.h * sc;
+    g.save(); g.imageSmoothingEnabled = false;
+    if (flip) { g.translate(Math.round(x), 0); g.scale(-1, 1); g.drawImage(im, Math.round(-w / 2), Math.round(y - h), w, h); }
+    else g.drawImage(im, Math.round(x - w / 2), Math.round(y - h), w, h);
+    g.restore();
+  }
+  var CAT_SC = 0.667;
+  var TAN_CAT = { x: 214, y: 201 };
+
   /* ---------- the scene ---------- */
   function buildNook() {
     var cv = C.makeCanvas(64, 70), c = cv.getContext('2d');
@@ -607,9 +630,6 @@
     // stone hearth slab and a cushion
     E(cx, cy + 2, 26, 8, '#cdbba0'); E(cx, cy + 1, 26, 8, '#e3d4bc');
     E(cx, cy, 14, 5, '#d98a8a'); E(cx, cy - 1, 14, 5, '#e9a5a5');
-    E(cx - 1, cy - 5, 7, 3 + b2, '#34323c'); R(cx - 5, cy - 7, 1, 3, '#25232b'); R(cx - 2, cy - 7, 1, 3, '#25232b');
-    R(cx + 4, cy - 9, 6, 5, '#34323c'); P(cx + 4, cy - 10, '#34323c'); P(cx + 9, cy - 10, '#34323c'); P(cx + 6, cy - 7, '#f7f2ea'); P(cx + 8, cy - 7, '#f7f2ea');
-    R(cx - 9, cy - 3, 4, 2, '#34323c');
     if (Math.random() < 0.006) this.emit('z', cx + 10, cy - 12, 1, { spread: 2 });
   };
   Scene.prototype.drawAvocado = function (g, t) {
@@ -693,8 +713,10 @@
       var pe = this.people[i]; r = { x: pe.cx - 16, y: pe.T - 58, w: 32, h: 62 };
       if (inRect(x, y, r)) return { type: pe.isPlayer ? 'player' : 'npc', id: pe.id, name: pe.spec.name, rect: r };
     }
-    var c = this.cat; r = { x: c.x - 15, y: c.y - 26, w: 30, h: 28 };
+    var c = this.cat; r = { x: c.x - 16, y: c.y - 32, w: 32, h: 34 };
     if (inRect(x, y, r)) return { type: 'cat', id: 'cat', name: 'Biscuit', rect: r };
+    r = { x: TAN_CAT.x - 16, y: TAN_CAT.y - 34, w: 32, h: 36 };
+    if (inRect(x, y, r)) return { type: 'cat', id: 'cat', name: 'Mochi', rect: r };
     r = { x: this.dogPos.x - 22, y: this.dogPos.y - 20, w: 44, h: 22 };
     if (inRect(x, y, r)) return { type: 'dog', id: 'dog', name: 'Waffles', rect: r };
     r = { x: this.hearthPos.x - 22, y: this.hearthPos.y - 26, w: 44, h: 28 };
@@ -881,8 +903,9 @@
 
   Scene.prototype.drawWallPlants = function (g, t) {
     [0, 1, 2, 3, 5, 6, 13, 14].forEach(function (id) { this.drawOnePlant(g, t, Pl.SLOTS[id]); }, this);
+    catSprite(g, 'tan', Math.floor(this.time * 2.5), TAN_CAT.x, TAN_CAT.y, CAT_SC);
     [['astilbeHoney', 34, 66, 52], ['carnGold', 150, 146, 38], ['trailBerry', 112, 66, 44, 8], ['trailMocha', 556, 74, 44, 8],
-     ['rubberCocoa', 214, 306, 76], ['roseTeal', 438, 172, 28], ['bouquet', 168, 146, 34]].forEach(function (d) {
+     ['rubberCocoa', 214, 306, 76], ['roseTeal', 438, 172, 28], ['bouquet', 168, 146, 34], ['roseTeal', 544, 118, 26], ['carnPink', 452, 118, 30], ['astilbePlum', 546, 172, 30], ['rosePink', 328, 201, 34], ['carnPink', 194, 201, 30], ['bouquet', 66, 200, 38]].forEach(function (d) {
       if (d[0] === 'bouquet') return;
       Pl.drawDecor(d[0], d[1], d[2], d[3], t, d[4]);
     });
@@ -987,22 +1010,12 @@
       g.restore();
     });
     tb.items.forEach(function (it) { var ix = Math.round(tb.cx + it.ox), iy = Math.round(tb.ty + it.oy); self.scaled(g, ix, iy, 1.25, function () { drawItem(it.k, ix, iy, t); }); });
-    if (tb.id === 'fr') this.drawOnePlant(g, t, Pl.SLOTS[7]);
+    if (tb.id === 'fr') { this.drawOnePlant(g, t, Pl.SLOTS[7]); Pl.drawDecor('astilbeHoney', tb.cx + 28, tb.ty - 2, 30, t); }
+    if (tb.id === 'fl') Pl.drawDecor('bouquet', tb.cx - 20, tb.ty - 3, 28, t);
     if (tb.id === 'fl') this.drawOnePlant(g, t, Pl.SLOTS[15]);
   };
 
-  Scene.prototype.updateCat = function (dt) {
-    var c = this.cat, wp = WAYPOINTS[c.target % WAYPOINTS.length];
-    c.timer -= dt;
-    if (c.state === 'walk') {
-      var dx = wp[0] - c.x, dy = wp[1] - c.y, d = Math.sqrt(dx * dx + dy * dy);
-      if (d < 2) {
-        c.target = Math.floor(Math.random() * WAYPOINTS.length);
-        var r = Math.random();
-        c.state = r < 0.45 ? 'sit' : (r < 0.75 ? 'groom' : 'loaf'); c.timer = 3 + Math.random() * 5;
-      } else { var sp = 15 * dt; c.x += dx / d * sp; c.y += dy / d * sp; if (Math.abs(dx) > 0.4) c.dir = dx > 0 ? 1 : -1; }
-    } else if (c.timer <= 0) c.state = 'walk';
-  };
+  Scene.prototype.updateCat = function (dt) { var c = this.cat; c.x = 304; c.y = 402; c.state = 'sit'; };
 
   Scene.prototype.drawParticles = function (g) {
     this.particles.forEach(function (p) {
@@ -1085,13 +1098,16 @@
       { y: Pl.SLOTS[10].y, fn: function () { self.drawFloorPlant(g, t, 10); } },
       { y: Pl.SLOTS[11].y, fn: function () { self.drawFloorPlant(g, t, 11); } },
       { y: Pl.SLOTS[12].y, fn: function () { self.drawFloorPlant(g, t, 12); } },
-      { y: this.hearthPos.y, fn: function () { var p = self.hearthPos; self.scaled(g, p.x, p.y, 1.4, function () { self.drawHearthPet(g, t); }); } },
+      { y: this.hearthPos.y, fn: function () { var p = self.hearthPos; self.scaled(g, p.x, p.y, 1.4, function () { self.drawHearthPet(g, t); }); catSprite(g, 'sleep', Math.floor(t * 2), p.x, p.y - 3, CAT_SC); } },
       { y: this.nook.y, fn: function () { var p = self.nook; self.scaled(g, p.x, p.y, 1.3, function () { self.drawNook(g, t); }); } },
       { y: CNT.y + 70, fn: function () { self.drawCounterGroup(g, t); } },
       { y: this.dogPos.y, fn: function () { var p = self.dogPos; self.scaled(g, p.x, p.y, 1.4, function () { self.drawDog(g, t); }); } },
       { y: this.avoPos.y, fn: function () { var p = self.avoPos; self.scaled(g, p.x, p.y, 1.5, function () { self.drawAvocado(g, t); }); } },
-      { y: c.y, fn: function () { self.softShadow(g, c.x, c.y + 1, 14, 4, 0.25); self.scaled(g, c.x, c.y, 1.5, function () { drawCat(Math.round(c.x), Math.round(c.y), c.dir, c.state, t, c.body, c.belly); }); } }
+      { y: c.y, fn: function () { self.softShadow(g, c.x, c.y + 1, 12, 3, 0.2); catSprite(g, 'white', Math.floor(t * 2) + (self.catPetUntil > t ? 1 : 0), c.x, c.y, CAT_SC); } }
     ];
+    [['roseSage', 18, 404, 64], ['astilbePlum', 118, 432, 46], ['carnGold', 404, 430, 46], ['rubberBlue', 566, 392, 58]].forEach(function (d) {
+      list.push({ y: d[2], fn: function () { Pl.drawDecor(d[0], d[1], d[2], d[3], t); } });
+    });
     TABLES.forEach(function (tb) { list.push({ y: tb.ty + 38, fn: function () { self.drawTableGroup(g, t, tb); } }); });
     list.sort(function (a, b) { return a.y - b.y; });
     list.forEach(function (it) { it.fn(); });
