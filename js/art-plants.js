@@ -27,7 +27,7 @@
   var UNLOCK_ORDER = [1, 0, 2, 7, 4, 3, 5, 6, 8, 12, 9, 10, 11, 13, 14, 15];
 
   /* how tall each kind of spot draws a plant, in scene pixels */
-  var KIND_H = { sill: 46, mantel: 38, table: 38, floor: 88, hang: 46 };
+  var KIND_H = { sill: 54, mantel: 46, table: 44, floor: 98, hang: 52 };
   var STAGE_SCALE = [0.5, 0.68, 0.84, 1];
 
   /* every plant you can grow. rel is its size next to the others. */
@@ -160,7 +160,24 @@
     g.restore();
   }
 
+  /* extra plants that live in the cafe all the time (not part of the garden) */
+  function drawDecor(id, x, y, h, t, hook) {
+    var v = VBY[id], img = tinted(id, 0); if (!v || !img) return;
+    var w = h * img.width / img.height, g = C.ctx();
+    var ang = Math.sin(t * 0.7 + x * 0.13) * 0.022;
+    g.save(); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    if (hook !== undefined && hook !== null) {
+      var topY = y - h;
+      g.translate(x, hook); g.rotate(ang * 0.6); g.translate(-x, -hook);
+      g.strokeStyle = '#6b5240'; g.lineWidth = 0.9; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(x, hook); g.lineTo(x - w * 0.34, topY + h * 0.5); g.moveTo(x, hook); g.lineTo(x + w * 0.34, topY + h * 0.5); g.stroke();
+      g.drawImage(img, x - w / 2, topY, w, h);
+    } else { g.translate(x, y); g.rotate(ang); g.drawImage(img, -w / 2, -h, w, h); }
+    g.restore();
+  }
+
   Cafe.Plants = {
+    drawDecor: drawDecor,
     unlockAt: unlockAt, drawSample: drawSample,
     SLOTS: SLOTS, UNLOCK_ORDER: UNLOCK_ORDER, VARIETIES: VARIETIES, varietiesFor: varietiesFor, defaultVariety: defaultVariety, resolve: resolve, THRESHOLDS: [0, 3, 10, 22],
     drawPlant: drawPlant, rectFor: rectFor, ready: function () { return ready >= total; }

@@ -215,6 +215,9 @@
     }
 
     var sw = Math.round(Math.sin(t * 2)) * 0.8;
+    // heads are drawn a touch smaller so everyone reads as grown up
+    var HS = 0.86;
+    g.save(); g.translate(cx, T - 10); g.scale(HS, HS); g.translate(-cx, -(T - 10));
     // hair behind the head and body
     switch (s.hair) {
       case 'bob': RRc(cx - 11.6, hy + 2, 23.2, 16, 8, hc); break;
@@ -256,6 +259,7 @@
       default: break;
     }
 
+    g.restore();
     // torso, outfit, arms
     var x0 = cx - bw / 2, y0 = T - 10;
     function torso() { rrp(x0, y0, bw, 13, 5); }
@@ -303,6 +307,7 @@
     var wvx = a.wave > 0.01 ? Math.sin(t * 14) * 0.9 : 0;
     if (rraised) { g.save(); g.translate(wvx, 0); arm(1, true, up); g.restore(); } else arm(1, false, 0);
 
+    g.save(); g.translate(cx, T - 10); g.scale(HS, HS); g.translate(-cx, -(T - 10));
     // hair falling in front of the shoulders
     switch (s.hair) {
       case 'long': case 'halfup': capsule(cx - 12.2, hy + 11, 5, 17, hc); capsule(cx + 7.2, hy + 11, 5, 17, hc); break;
@@ -478,6 +483,7 @@
       g.strokeStyle = '#46405a'; g.lineWidth = 1.7; g.beginPath(); g.arc(cx, hcy - 0.5, 11.6, Math.PI * 1.04, Math.PI * 1.96); g.stroke();
       [-1, 1].forEach(function (d) { RRc(cx + d * 11.6 - 2.1, hcy - 2.6, 4.2, 7.4, 2.1, acc); glow(cx + d * 11.6 - 0.6, hcy - 1, 0.8, 1.6, '#ffffff', 0.45); });
     }
+    g.restore();
     return cv;
   }
 

@@ -14,11 +14,11 @@
   var GLASS = { x: 196, y: 54, w: 136, h: 146 };
   var CLOCK = { x: 98, y: 108, r: 21 };
   var FIREBOX = { x: 80, y: 246, w: 36, h: 54 };
-  var PSC = 1.2; // how big seated people are drawn
+  var PSC = 1.68; // how big seated people are drawn
 
   /* ---------- the palette: dusty, warm, a little mixed ---------- */
   var PAL = {
-    wall: '#dcb694', wallHi: '#e6c8a9', wain: '#c47a5c', wainLn: '#b06e59', cream: '#efe0c8', creamDk: '#d9c6a6',
+    wall: '#f1e6d2', wallHi: '#f8f0e2', wain: '#c47a5c', wainLn: '#b06e59', cream: '#efe0c8', creamDk: '#d9c6a6',
     wood: '#9b6747', woodDk: '#7a4e36', woodLt: '#b98259', floorA: '#c99c70', floorB: '#cfa577', seam: '#b78a62',
     stone: '#cdb99d', stoneLn: '#b9a283', terra: '#b9694d', sage: '#9bb08f', mustard: '#d9a64e', blue: '#7f9db3',
     mauve: '#a77a8c', ink: '#5b4237', navy: '#3f5a7a'
@@ -58,11 +58,11 @@
 
   /* ---------- layout ---------- */
   var TABLES = [
-    { id: 'back', cx: 330, ty: 334, rx: 50, cloth: 'runner', seats: [{ dx: -54, r: 0 }, { dx: 0, r: 1 }, { dx: 54, r: 2 }],
+    { id: 'back', cx: 330, ty: 334, rx: 62, cloth: 'runner', seats: [{ dx: -66, r: 0 }, { dx: 0, r: 1 }, { dx: 66, r: 2 }],
       items: [{ k: 'cup', ox: -30, oy: 4 }, { k: 'book', ox: 20, oy: 8 }, { k: 'tea', ox: 34, oy: 0 }] },
-    { id: 'fl', cx: 176, ty: 376, rx: 46, cloth: 'checks', seats: [{ dx: -52, r: 1 }, { dx: 52, r: 2 }],
+    { id: 'fl', cx: 176, ty: 376, rx: 58, cloth: 'checks', seats: [{ dx: -62, r: 1 }, { dx: 62, r: 2 }],
       items: [{ k: 'cup', ox: -14, oy: 5 }, { k: 'pastry', ox: 16, oy: 6 }] },
-    { id: 'fr', cx: 450, ty: 378, rx: 40, cloth: 'wood', seats: [],
+    { id: 'fr', cx: 450, ty: 378, rx: 52, cloth: 'wood', seats: [],
       items: [{ k: 'cup', ox: 14, oy: 6 }, { k: 'pastry', ox: -4, oy: 8 }, { k: 'book', ox: 26, oy: 0 }] }
   ];
   var PLAYER_SEAT = { table: 'back', index: 1 };
@@ -71,7 +71,7 @@
   var HEARTH = { x: 98, y: 322 };
   var AVO = { x: 524, y: 408 };
   var DOGSPOT = { x: 262, y: 410 };
-  var BARISTA = { cx: 432, T: 254 };
+  var BARISTA = { cx: 436, T: 232 };
   var CNT = { x: 344, y: 230, w: 212 };
   var BC1 = { x: 10, y: 66, w: 50, h: 234, rows: 4 };
   var BC2 = { x: 140, y: 146, w: 46, h: 154, rows: 3 };
@@ -416,10 +416,16 @@
     box(g, G.x - 34, 44, G.w + 68, 4, PAL.woodDk, 2); ell(g, G.x - 34, 46, 4, 4, PAL.woodLt); ell(g, G.x + G.w + 34, 46, 4, 4, PAL.woodLt);
     function curtain(side) {
       var x0 = side < 0 ? G.x - 32 : G.x + G.w + 32, ed = side < 0 ? G.x + 10 : G.x + G.w - 10, f = side;
-      g.fillStyle = T('#a9b58f'); g.beginPath(); g.moveTo(x0, 48); g.lineTo(ed, 48);
+      g.fillStyle = T('#a3b46f'); g.beginPath(); g.moveTo(x0, 48); g.lineTo(ed, 48);
       g.bezierCurveTo(ed - f * 4, 100, ed - f * 10, 130, ed - f * 6, 150);
       g.bezierCurveTo(ed - f * 8, 170, ed - f * 4, 190, ed - f * 2, 204);
       g.lineTo(x0, 204); g.closePath(); g.fill();
+      g.save(); g.clip();
+      var lo = Math.min(x0, ed) - 14, hi = Math.max(x0, ed) + 14, cs = 9, kx, ky;
+      g.fillStyle = 'rgba(255,248,225,0.34)';
+      for (kx = lo - ((lo % (cs * 2)) + cs * 2) % (cs * 2); kx < hi; kx += cs * 2) g.fillRect(kx, 44, cs, 164);
+      for (ky = 44; ky < 208; ky += cs * 2) g.fillRect(lo, ky, hi - lo, cs);
+      g.restore();
       g.strokeStyle = 'rgba(80,100,70,0.22)'; g.lineWidth = 1.3;
       for (var k = 1; k < 4; k++) { var fx = x0 + (ed - x0) * k / 4; g.beginPath(); g.moveTo(fx, 52); g.bezierCurveTo(fx - f * 1, 100, fx - f * 3, 150, fx - f * 1, 202); g.stroke(); }
       box(g, side < 0 ? ed - 18 : ed - 2, 148, 20, 5, PAL.mustard, 2.5);
@@ -496,7 +502,7 @@
         var isPlayer = tb.id === PLAYER_SEAT.table && idx === PLAYER_SEAT.index;
         var spec = isPlayer ? self.state.player : Pe.roster[tb.id][s.r];
         self.people.push({
-          id: tb.id + idx, table: tb.id, cx: tb.cx + s.dx, T: tb.ty + (s.dx === 0 ? -24 : -6), spec: spec, isPlayer: isPlayer, dx: s.dx,
+          id: tb.id + idx, table: tb.id, cx: tb.cx + s.dx, T: tb.ty + (s.dx === 0 ? -24 : -14), spec: spec, isPlayer: isPlayer, dx: s.dx,
           ph: r() * 6.28, chair: CHAIRS[(idx + (tb.id === 'fl' ? 1 : 0)) % CHAIRS.length], bubble: null, nextBubble: 6 + r() * 14, waveUntil: 0
         });
       });
@@ -510,7 +516,7 @@
     this.drops = []; for (i = 0; i < 16; i++) this.drops.push({ x: rs() * GW, y: rs() * GH * 0.7, v: 1.5 + rs() * 3, hold: rs() * 5 });
     this.snow = []; for (i = 0; i < 38; i++) this.snow.push({ x: rs() * GW, y: rs() * GH, v: 9 + rs() * 12, sw: rs() * 6, big: rs() < 0.3 });
     this.motes = []; for (i = 0; i < 18; i++) this.motes.push({ x: 150 + rs() * 300, y: 150 + rs() * 200, v: 2 + rs() * 3, p: rs() * 6 });
-    this.cat = { x: WAYPOINTS[0][0], y: WAYPOINTS[0][1], dir: 1, state: 'walk', timer: 6, body: '#e8a458', belly: '#fff0dc', target: 1 };
+    this.cat = { x: WAYPOINTS[0][0], y: WAYPOINTS[0][1], dir: 1, state: 'walk', timer: 6, body: '#34323c', belly: '#f7f2ea', target: 1 };
     this.catPetUntil = 0;
   };
 
@@ -601,9 +607,9 @@
     // stone hearth slab and a cushion
     E(cx, cy + 2, 26, 8, '#cdbba0'); E(cx, cy + 1, 26, 8, '#e3d4bc');
     E(cx, cy, 14, 5, '#d98a8a'); E(cx, cy - 1, 14, 5, '#e9a5a5');
-    E(cx - 1, cy - 5, 7, 3 + b2, '#9aa0ad'); R(cx - 5, cy - 7, 1, 3, '#7c8290'); R(cx - 2, cy - 7, 1, 3, '#7c8290');
-    R(cx + 4, cy - 9, 6, 5, '#9aa0ad'); P(cx + 4, cy - 10, '#9aa0ad'); P(cx + 9, cy - 10, '#9aa0ad'); P(cx + 6, cy - 7, '#5a5f6c'); P(cx + 8, cy - 7, '#5a5f6c');
-    R(cx - 9, cy - 3, 4, 2, '#9aa0ad');
+    E(cx - 1, cy - 5, 7, 3 + b2, '#34323c'); R(cx - 5, cy - 7, 1, 3, '#25232b'); R(cx - 2, cy - 7, 1, 3, '#25232b');
+    R(cx + 4, cy - 9, 6, 5, '#34323c'); P(cx + 4, cy - 10, '#34323c'); P(cx + 9, cy - 10, '#34323c'); P(cx + 6, cy - 7, '#f7f2ea'); P(cx + 8, cy - 7, '#f7f2ea');
+    R(cx - 9, cy - 3, 4, 2, '#34323c');
     if (Math.random() < 0.006) this.emit('z', cx + 10, cy - 12, 1, { spread: 2 });
   };
   Scene.prototype.drawAvocado = function (g, t) {
@@ -875,6 +881,11 @@
 
   Scene.prototype.drawWallPlants = function (g, t) {
     [0, 1, 2, 3, 5, 6, 13, 14].forEach(function (id) { this.drawOnePlant(g, t, Pl.SLOTS[id]); }, this);
+    [['astilbeHoney', 34, 66, 52], ['carnGold', 150, 146, 38], ['trailBerry', 112, 66, 44, 8], ['trailMocha', 556, 74, 44, 8],
+     ['rubberCocoa', 214, 306, 76], ['roseTeal', 438, 172, 28], ['bouquet', 168, 146, 34]].forEach(function (d) {
+      if (d[0] === 'bouquet') return;
+      Pl.drawDecor(d[0], d[1], d[2], d[3], t, d[4]);
+    });
   };
   Scene.prototype.drawFloorPlant = function (g, t, id) {
     var p = this.state.plants[id]; if (!p || !p.unlocked) return;
