@@ -722,7 +722,7 @@
       var pe = this.people[i]; r = { x: pe.cx - 16, y: pe.T - 58, w: 32, h: 62 };
       if (inRect(x, y, r)) return { type: pe.isPlayer ? 'player' : 'npc', id: pe.id, name: pe.spec.name, rect: r };
     }
-    var c = this.cat; r = { x: c.x - 16, y: c.y - 32, w: 32, h: 34 };
+    var c = this.cat; r = { x: c.x - 22, y: c.y - 24, w: 44, h: 28 };
     if (inRect(x, y, r)) return { type: 'cat', id: 'cat', name: 'Biscuit', rect: r };
     r = { x: TAN_CAT.x - 16, y: TAN_CAT.y - 34, w: 32, h: 36 };
     if (inRect(x, y, r)) return { type: 'cat', id: 'cat', name: 'Mochi', rect: r };
@@ -1137,7 +1137,11 @@
       { y: CNT.y + 70, fn: function () { self.drawCounterGroup(g, t); } },
       { y: this.dogPos.y, fn: function () { var p = self.dogPos; } },
       { y: this.avoPos.y, fn: function () { var p = self.avoPos; self.scaled(g, p.x, p.y, 1.5, function () { self.drawAvocado(g, t); }); } },
-      { y: c.y, fn: function () { self.softShadow(g, c.x, c.y + 1, 12, 3, 0.2); catSprite(g, 'white', Math.floor(t * 2) + (self.catPetUntil > t ? 1 : 0), c.x, c.y, CAT_SC); } }
+      { y: c.y, fn: function () { self.softShadow(g, c.x, c.y + 2, 24, 5, 0.22); var bx = c.x, by = c.y; g.fillStyle = T('#8a5a3a'); g.beginPath(); g.ellipse(bx, by - 1, 22, 8, 0, 0, 6.2832); g.fill();
+        g.fillStyle = T('#d8a47c'); g.beginPath(); g.ellipse(bx, by - 2.5, 20, 6.4, 0, 0, 6.2832); g.fill();
+        g.fillStyle = T('#e9c4d6'); g.beginPath(); g.ellipse(bx, by - 2.5, 15, 4.2, 0, 0, 6.2832); g.fill();
+        catSprite(g, 'sleep', Math.floor(t * 2) + 1, bx, by - 2, CAT_SC);
+        g.fillStyle = T('#d8a47c'); g.beginPath(); g.ellipse(bx, by + 1, 21, 4.2, 0, 0, Math.PI); g.fill(); } }
     ];
     list.push({ y: 432, fn: function () { Pl.drawDecor('rubberCocoa', 26, 432, 78, t); } });
     list.push({ y: TOWER.y, fn: function () { self.softShadow(g, TOWER.x, TOWER.y + 1, 22, 4, 0.22); catSprite(g, 'tower', 0, TOWER.x, TOWER.y, CAT_SC); catSprite(g, 'tan', Math.floor(t * 2.5) + 2, self.dogPos.x, self.dogPos.y, CAT_SC, true); } });
