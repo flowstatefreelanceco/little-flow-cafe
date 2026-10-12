@@ -449,11 +449,11 @@ canvas#scene, #scene { border-radius: 22px; border: 0; box-shadow: none; }
   .scene-wrap { order: 1; }
   .scene-hint { order: 2; margin: 0 2px 4px; }
   #timer-card { order: 3; }
-  #tasks-card { order: 4; }
-  .card.vibes { order: 5; }
-  .stage > .card:not(.vibes):not(.jar-card) { order: 6; }
-  .jar-card { order: 7; }
-  .side > .card:last-child { order: 8; }
+  #garden-card { order: 4; }
+  #tasks-card { order: 5; }
+  .card.vibes { order: 6; }
+  .stage > .card:not(.vibes):not(.jar-card) { order: 7; }
+  .jar-card { order: 8; }
   .layout > .card, .layout .card { margin-bottom: 0; }
   .layout { gap: 16px; }
 }
@@ -469,3 +469,18 @@ canvas#scene, #scene { border-radius: 22px; border: 0; box-shadow: none; }
 .plant-list select { width: auto; max-width: 100%; }
 .side .jar-card .jar-wrap { gap: 10px; }
 .side #jar { width: 120px; }
+
+/* smaller timer */
+.timer-face { width: 150px; height: 150px; margin: 0 auto 4px; }
+.time { font-size: 2.1rem; }
+.time-sub { font-size: 0.8rem; }
+#timer-card .seg { margin-bottom: 8px; }
+#timer-card .chip { min-height: 38px; }
+#timer-card .btn-row { margin-top: 6px; }
+/* clearer task controls */
+.check { width: 36px; height: 36px; border: 2.5px solid #c9694a; border-radius: 50%; background: #fffaf0; font-size: 1.15rem; }
+.check:hover { background: #f6e3d3; }
+.check[aria-pressed="true"] { background: #7f9d6c; border-color: #62804f; color: #fff; }
+.icon-btn { border: 1.5px solid #d9b79b; background: #fffaf0; color: #7a4630; }
+#top3 .text, #tasklist .text { background: none; border: 0; box-shadow: none; font: 700 0.98rem var(--font-body); color: var(--ink); text-align: left; flex: 1; min-width: 0; cursor: text; padding: 4px 2px; }
+.fine.how { margin: 6px 2px 8px; }

@@ -144,6 +144,16 @@
         </div>
       </section>
 
+      <section class="card" id="garden-card" aria-labelledby="garden-h">
+        <h2 id="garden-h">Your plants</h2>
+                <div class="btn-row"><button id="water-all" class="btn" type="button">Water everyone</button><button id="open-house" class="btn" type="button">Open greenhouse</button></div>
+        <ul class="plant-list" id="plant-list"></ul>
+        <div class="unlock" id="unlock"></div>
+                <div class="vac" id="vac"></div>
+        <div class="stats" id="stats"></div>
+        <p class="today-card" id="today-card" hidden></p>
+      </section>
+
       <section class="card jar-card" aria-labelledby="jar-h">
         <h2 id="jar-h">Your star jar</h2>
         <div class="jar-wrap">
@@ -155,6 +165,7 @@
       <section class="card" id="tasks-card" aria-labelledby="tasks-h">
         <h2 id="tasks-h">Today's top 3</h2>
         <ol class="top3" id="top3"></ol>
+        <p class="fine how">Tap the circle to check a task off. That earns a star and helps your plants grow. Tap the x to delete one.</p>
         <h3>Everything else <span class="count" id="task-count"></span></h3>
         <ul class="tasklist" id="tasklist"></ul>
         <form id="task-form" class="add-form" autocomplete="off">
@@ -166,15 +177,6 @@
         <p class="fine" id="save-note">Your list is saved on this device. Log in to keep it everywhere.</p>
       </section>
 
-      <section class="card" aria-labelledby="garden-h">
-        <h2 id="garden-h">Your plants</h2>
-        <ul class="plant-list" id="plant-list"></ul>
-        <div class="unlock" id="unlock"></div>
-        <div class="btn-row"><button id="water-all" class="btn" type="button">Water everyone</button><button id="open-house" class="btn" type="button">Open greenhouse</button></div>
-        <div class="vac" id="vac"></div>
-        <div class="stats" id="stats"></div>
-        <p class="today-card" id="today-card" hidden></p>
-      </section>
     </aside>
   </main>
 
