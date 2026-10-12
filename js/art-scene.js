@@ -963,7 +963,7 @@
     C.blit(g, sp.cv, tb.cx - sp.ax, tb.ty - sp.ay);
     mine.forEach(function (p) {
       var lx = Math.round(tb.cx + p.dx * 0.55), ly = Math.round(tb.ty + (p.dx === 0 ? -4 : 0)), k = Math.abs(Math.round(p.cx));
-      self.scaled(g, lx, ly, 1.15, function () { Pe.drawLaptop(lx, ly, ['#e9e4da', '#dfe3ea', '#f0e2e2', '#e4ece0'][k % 4], ['#f4a6b8', '#a8d5ba', '#bcd7f2', '#f5d98a', '#c9a7ff'][k % 5]); });
+      self.scaled(g, lx, ly, 1.15, function () { Pe.drawLaptop(lx, ly, (Pe.Options.laptopColors[p.spec.laptop] || '#e9e4da'), ['#f4a6b8', '#a8d5ba', '#bcd7f2', '#f5d98a', '#c9a7ff'][k % 5]); });
     });
     if (mode !== 'break') mine.forEach(function (p) {
       var cyc = (t * 0.22 + p.ph * 0.37) % 1;

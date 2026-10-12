@@ -783,6 +783,8 @@
     box.appendChild(chipRow('Body shape', O.bodies, function () { return c.body; }, function (id) { changeChar({ body: id }); }));
     box.appendChild(chipRow('Outfit', O.outfits, function () { return c.outfit; }, function (id) { changeChar({ outfit: id }); }));
     box.appendChild(swatchRow('Outfit color', O.outfitColors, function () { return c.outfitColor; }, function (i) { changeChar({ outfitColor: i }); }, O.outfitColors.map(function (_, i) { return 'Outfit color ' + (i + 1); })));
+    box.appendChild(swatchRow('Eye color', O.eyeColors, function () { return c.eyes; }, function (i) { changeChar({ eyes: i }); }, O.eyeColorNames));
+    box.appendChild(swatchRow('Laptop color', O.laptopColors, function () { return c.laptop; }, function (i) { changeChar({ laptop: i }); }, O.laptopColorNames));
     box.appendChild(chipRow('Glasses', O.glasses, function () { return c.glasses; }, function (id) { changeChar({ glasses: id }); }));
     box.appendChild(chipRow('Facial hair', O.facial, function () { return c.facial; }, function (id) { changeChar({ facial: id }); }));
     box.appendChild(chipRow('Face details', O.details, function () { return c.detail; }, function (id) { changeChar({ detail: id }); }));

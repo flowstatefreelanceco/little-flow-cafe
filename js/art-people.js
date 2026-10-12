@@ -65,18 +65,22 @@
   var HAIRACC = [{ id: 'none', label: 'None' }, { id: 'bow', label: 'Bow' }, { id: 'flower', label: 'Flower clip' }, { id: 'ears', label: 'Cat ears' }, { id: 'bear', label: 'Bear ears' }];
   var SEATS = [{ id: 'chair', label: 'Cafe chair' }, { id: 'wheelchair', label: 'Wheelchair' }];
 
+  var EYEC = ['#3b2a22', '#6a4326', '#4f7fb8', '#4f9a6a', '#7a8f5a', '#8a6fc4', '#a6a9b0', '#c2527a'];
+  var EYEC_NAMES = ['Deep brown', 'Warm brown', 'Blue', 'Green', 'Hazel', 'Violet', 'Gray', 'Rose'];
+  var LAPTOPC = ['#e9e4da', '#f0b8c4', '#a9c9e8', '#a8d5ba', '#f2d27a', '#c9a7e8', '#e59a7a', '#4a4a52'];
+  var LAPTOPC_NAMES = ['Cream', 'Blush pink', 'Sky blue', 'Sage green', 'Butter yellow', 'Lilac', 'Terracotta', 'Charcoal'];
   var SW = 52, SH = 56, AX = 26, AT = 44;
 
   var Options = {
     skin: SKIN, hairColors: HAIRC, hairColorNames: HAIRC_NAMES, outfitColors: OUTC,
     hairStyles: HAIR_STYLES, bodies: BODIES, outfits: OUTFITS, glasses: GLASSES,
-    facial: FACIAL, details: DETAILS, hairAcc: HAIRACC, seats: SEATS
+    facial: FACIAL, details: DETAILS, hairAcc: HAIRACC, seats: SEATS, eyeColors: EYEC, eyeColorNames: EYEC_NAMES, laptopColors: LAPTOPC, laptopColorNames: LAPTOPC_NAMES
   };
 
   function defaultSpec() {
     return {
       name: 'You', skin: 4, hair: 'curly', hairColor: 1, body: 1, outfit: 'hoodie', outfitColor: 0,
-      glasses: 'none', facial: 'none', detail: 'none', hairAcc: 'none', headphones: false, hearing: false, seat: 'chair'
+      glasses: 'none', facial: 'none', detail: 'none', hairAcc: 'none', headphones: false, hearing: false, seat: 'chair', eyes: 0, laptop: 0
     };
   }
   function pick(r, arr) { return arr[Math.floor(r() * arr.length)]; }
@@ -97,6 +101,8 @@
     s.headphones = r() < 0.2;
     s.hearing = r() < 0.1;
     s.seat = r() < 0.1 ? 'wheelchair' : 'chair';
+    s.eyes = Math.floor(r() * EYEC.length);
+    s.laptop = Math.floor(r() * LAPTOPC.length);
     return s;
   }
   // make sure a saved spec has every field (older saves, or hand edits)
@@ -108,6 +114,8 @@
     out.skin = C.clamp(parseInt(out.skin, 10) || 0, 0, SKIN.length - 1);
     out.hairColor = C.clamp(parseInt(out.hairColor, 10) || 0, 0, HAIRC.length - 1);
     out.outfitColor = C.clamp(parseInt(out.outfitColor, 10) || 0, 0, OUTC.length - 1);
+    out.eyes = C.clamp(parseInt(out.eyes, 10) || 0, 0, EYEC.length - 1);
+    out.laptop = C.clamp(parseInt(out.laptop, 10) || 0, 0, LAPTOPC.length - 1);
     out.body = C.clamp(parseInt(out.body, 10) || 0, 0, BODIES.length - 1);
     out.name = String(out.name || 'You').slice(0, 14);
     out.headphones = !!out.headphones;
@@ -334,12 +342,23 @@
       g.strokeStyle = '#2a1f2a'; g.lineWidth = 0.8;
       [-1, 1].forEach(function (d) { g.beginPath(); g.arc(cx + d * ex, ey - 0.3, 1.5, 0.2, Math.PI - 0.2); g.stroke(); });
     } else {
+      var iris = EYEC[s.eyes] || EYEC[0], irisD = shade(iris, -0.3), irisL = shade(iris, 0.4);
       [-1, 1].forEach(function (d) {
-        Ec(cx + d * ex, ey, 1.55, 2.2, '#2a1f2a', { line: false });
-        Ec(cx + d * ex - 0.5, ey - 0.9, 0.62, 0.7, '#ffffff', { line: false });
-        Ec(cx + d * ex + 0.55, ey + 0.9, 0.32, 0.32, '#ffffff', { line: false });
+        var X = cx + d * ex;
+        Ec(X, ey, 2.0, 2.7, '#fffaf2', { line: false });
+        Ec(X, ey + 0.1, 1.75, 2.45, iris, { line: false });
+        g.save(); g.beginPath(); ep(X, ey + 0.1, 1.75, 2.45); g.clip();
+        g.fillStyle = irisD; g.fillRect(X - 3, ey - 2.6, 6, 1.6);
+        glow(X, ey + 1.7, 1.5, 0.9, irisL, 0.8);
+        g.restore();
+        Ec(X, ey + 0.2, 0.85, 1.25, '#1f1620', { line: false });
+        Ec(X - 0.7, ey - 1, 0.75, 0.8, '#ffffff', { line: false });
+        Ec(X + 0.7, ey + 1.1, 0.34, 0.34, '#ffffff', { line: false });
+        g.strokeStyle = '#2a1f2a'; g.lineWidth = 0.55; g.beginPath(); g.arc(X, ey + 0.1, 2.0, 3.55, 5.9); g.stroke();
       });
     }
+    // tiny nose
+    glow(cx, hcy + 3.1, 0.7, 0.45, shade(skin, -0.2), 0.8);
     g.strokeStyle = mouth; g.lineWidth = 0.7;
     g.beginPath();
     if (a.smile) { g.arc(cx, hcy + 3.9, 1.7, 0.15, Math.PI - 0.15); } else { g.arc(cx, hcy + 4.2, 1.1, 0.3, Math.PI - 0.3); }
@@ -500,7 +519,7 @@
   function drawPreview(canvas, spec, t) {
     var c = canvas.getContext('2d');
     var w = canvas.width, h = canvas.height;
-    var sc = (h * 1.12) / SH;
+    var sc = (h * 1.4) / SH;
     var sp = sprite(cleanSpec(spec), { t: t || 0, smile: true, chair: '#c9805f', S: Math.max(3, Math.min(10, Math.ceil(sc))) });
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
@@ -513,15 +532,16 @@
     c.fillStyle = '#a9c0a0'; c.beginPath(); c.moveTo(w * 0.24, h * 0.66); c.quadraticCurveTo(w * 0.4, h * 0.5, w * 0.58, h * 0.58); c.quadraticCurveTo(w * 0.7, h * 0.52, w * 0.76, h * 0.6); c.lineTo(w * 0.76, h * 0.66); c.closePath(); c.fill();
     c.fillStyle = '#c99568'; c.beginPath(); c.ellipse(w / 2, h * 0.95, w * 0.62, h * 0.16, 0, 0, 6.283); c.fill();
     var dw = SW * sc, dh = SH * sc;
-    var dx = (w - dw) / 2, dy = h * 0.93 - AT * sc;
+    var dx = (w - dw) / 2, dy = h * 0.98 - AT * sc;
     c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
     c.drawImage(sp, dx, dy, dw, dh);
     // laptop as a soft rounded shape
     c.globalCompositeOperation = 'source-over'; c.globalAlpha = 0.9;
-    c.fillStyle = '#efe9df'; c.beginPath();
+    var lc = LAPTOPC[cleanSpec(spec).laptop] || LAPTOPC[0]; c.fillStyle = lc; c.beginPath();
     if (c.roundRect) c.roundRect(w / 2 - w * 0.15, h * 0.86, w * 0.3, h * 0.12, 10); else c.rect(w / 2 - w * 0.15, h * 0.86, w * 0.3, h * 0.12);
     c.fill();
-    c.fillStyle = '#f4a6b8'; c.globalAlpha = 0.9; c.beginPath(); c.arc(w / 2, h * 0.92, w * 0.02, 0, 6.283); c.fill();
+    c.fillStyle = shade(lc, -0.25); c.globalAlpha = 0.9; c.beginPath(); c.arc(w / 2, h * 0.92, w * 0.02, 0, 6.283); c.fill();
+    c.globalAlpha = 1; c.lineWidth = Math.max(6, w * 0.035); c.strokeStyle = '#8a5a3c'; c.strokeRect(0, 0, w, h); c.lineWidth = 2; c.strokeStyle = '#b98a62'; c.strokeRect(c.lineWidth + w * 0.03, c.lineWidth + w * 0.03, w - 2 * (w * 0.03 + 2), h - 2 * (w * 0.03 + 2));
     c.globalCompositeOperation = 'source-over';
   }
 
@@ -533,14 +553,14 @@
   }
   var ROSTER = {
     back: [
-      npc({ name: 'Mina', skin: 0, hair: 'long', hairColor: 6, body: 1, outfit: 'cardigan', outfitColor: 3, glasses: 'round', detail: 'freckles' }),
+      npc({ name: 'Mina', skin: 0, hair: 'long', hairColor: 6, body: 1, outfit: 'cardigan', outfitColor: 3, glasses: 'round', detail: 'freckles', eyes: 4, laptop: 2 }),
       null,
-      npc({ name: 'Noor', skin: 4, hair: 'hijab', hairColor: 2, body: 1, outfit: 'turtle', outfitColor: 4 })
+      npc({ name: 'Noor', skin: 4, hair: 'hijab', hairColor: 2, body: 1, outfit: 'turtle', outfitColor: 4, eyes: 1, laptop: 5 })
     ],
     fl: [
-      npc({ name: 'Theo', skin: 3, hair: 'locs', hairColor: 1, body: 2, outfit: 'stripes', outfitColor: 3, facial: 'beard', glasses: 'square' }),
-      npc({ name: 'Ivy', skin: 2, hair: 'wavy', hairColor: 4, body: 1, outfit: 'overalls', outfitColor: 1, detail: 'freckles', hairAcc: 'flower' }),
-      npc({ name: 'Jo', skin: 6, hair: 'twists', hairColor: 0, body: 1, outfit: 'hoodie', outfitColor: 7, seat: 'wheelchair', hearing: true })
+      npc({ name: 'Theo', skin: 3, hair: 'locs', hairColor: 1, body: 2, outfit: 'stripes', outfitColor: 3, facial: 'beard', glasses: 'square', eyes: 0, laptop: 6 }),
+      npc({ name: 'Ivy', skin: 2, hair: 'wavy', hairColor: 4, body: 1, outfit: 'overalls', outfitColor: 1, detail: 'freckles', hairAcc: 'flower', eyes: 3, laptop: 1 }),
+      npc({ name: 'Jo', skin: 6, hair: 'twists', hairColor: 0, body: 1, outfit: 'hoodie', outfitColor: 7, seat: 'wheelchair', hearing: true, eyes: 1, laptop: 3 })
     ],
     fr: []
   };
