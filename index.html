@@ -76,6 +76,7 @@
       <button id="btn-acct" class="btn ghost" type="button" hidden>Log in or sign up</button>
       <button id="btn-logout" class="btn ghost" type="button" hidden>Log out</button>
       <button id="btn-house" class="btn ghost" type="button">Greenhouse</button>
+      <button id="btn-tasks" class="btn ghost" type="button">My tasks</button>
       <button id="btn-cards" class="btn ghost" type="button">Daily card</button>
     </nav>
   </header>
@@ -235,6 +236,24 @@
       <h3 class="house-sub">Plant collection</h3>
       <p class="fine" id="house-coll-note"></p>
       <div class="house-grid small" id="house-coll"></div>
+    </div>
+  </div>
+
+  <!-- Full task list -->
+  <div id="modal-tasks" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="tasksm-h">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="tasksm-h">My tasks</h2>
+        <button type="button" class="btn ghost" data-close>Close</button>
+      </div>
+      <p class="fine how">Tap the circle to check a task off. That earns a star and helps your plants grow. Tap the x to delete one. The star moves a task into your top 3.</p>
+      <ul class="tasklist" id="tasklist-full"></ul>
+      <form id="task-form-full" class="add-form" autocomplete="off">
+        <label class="sr" for="task-input-full">Add a task</label>
+        <input id="task-input-full" type="text" maxlength="120" placeholder="Add a task" data-autofocus>
+        <button class="btn" type="submit">Add</button>
+      </form>
+      <button id="clear-done-full" class="link" type="button" hidden>Clear finished tasks</button>
     </div>
   </div>
 

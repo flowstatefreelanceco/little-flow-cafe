@@ -464,8 +464,8 @@
     save(); renderTasks(); renderGarden();
   }
   function removeTask(t) { S.tasks = S.tasks.filter(function (x) { return x !== t; }); save(); renderTasks(); }
-  function textButton(t) {
-    if (editingId === t.id) {
+  function textButton(t, full) {
+    if (editingId === t.id && !!full === !$('modal-tasks').hidden) {
       var inp = el('input', { class: 'edit', type: 'text', maxlength: '120', value: t.text, 'aria-label': 'Edit task' });
       function done(saveIt) {
         if (editingId !== t.id) return;
@@ -512,10 +512,28 @@
         el('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Delete task', title: 'Delete', text: '×', onclick: function () { removeTask(t); } })
       ]));
     });
+    var full = $('tasklist-full');
+    if (full) {
+      full.innerHTML = '';
+      var ordered = S.tasks.filter(function (t) { return t.top >= 0; }).sort(function (x, y) { return x.top - y.top; }).concat(rest);
+      if (!ordered.length) full.appendChild(el('li', { class: 'fine', text: 'Nothing here yet. Add your first task below.' }));
+      ordered.forEach(function (t) {
+        var isTop = t.top >= 0;
+        full.appendChild(el('li', { class: 'task' + (t.done ? ' done' : '') }, [
+          checkBtn(t), textButton(t, true),
+          el('button', { class: 'icon-btn', type: 'button', 'aria-label': isTop ? 'Move out of top 3' : 'Move to top 3', title: isTop ? 'In your top 3. Tap to move down' : (free ? 'Move to top 3' : 'Your top 3 is full'), disabled: !isTop && !free, text: isTop ? '★' : '☆', onclick: function () { if (isTop) t.top = -1; else for (var i = 0; i < 3; i++) if (!topTask(i)) { t.top = i; break; } save(); renderTasks(); } }),
+          el('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Delete task', title: 'Delete', text: '×', onclick: function () { removeTask(t); } })
+        ]));
+      });
+      $('clear-done-full').hidden = !S.tasks.some(function (t) { return t.done; });
+    }
     $('task-count').textContent = rest.length ? '(' + rest.length + ')' : '';
     $('clear-done').hidden = !S.tasks.some(function (t) { return t.done; });
   }
   $('task-form').addEventListener('submit', function (e) { e.preventDefault(); addTask($('task-input').value, -1); $('task-input').value = ''; });
+  $('task-form-full').addEventListener('submit', function (e) { e.preventDefault(); addTask($('task-input-full').value, -1); $('task-input-full').value = ''; });
+  $('clear-done-full').addEventListener('click', function () { S.tasks = S.tasks.filter(function (t) { return !t.done; }); save(); renderTasks(); });
+  $('btn-tasks').addEventListener('click', function () { renderTasks(); openModal('modal-tasks'); });
   $('clear-done').addEventListener('click', function () { S.tasks = S.tasks.filter(function (t) { return !t.done; }); save(); renderTasks(); });
 
   /* new day: bring leftovers along, or let them go */
