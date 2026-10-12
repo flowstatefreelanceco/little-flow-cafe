@@ -1061,8 +1061,8 @@
       pending = email; codeKind = kind;
       allForms('auth-code'); $('auth-tabs').hidden = true;
       $('auth-sent').textContent = kind === 'recovery'
-        ? 'We sent a reset link and a code to ' + email + '. Tap the link in the email, or type the code here.'
-        : 'We sent a link and a code to ' + email + ' to confirm it is you. Tap the link, or type the code here.';
+        ? 'We sent a reset link to ' + email + '. Tap the link in the email and you can choose a new password. It can take a minute to arrive, so check spam too.'
+        : 'We sent a link to ' + email + ' to confirm it is you. Tap it and you are in. It can take a minute to arrive, so check spam too.';
       say(''); setTimeout(function () { $('code-in').focus(); }, 50);
     }
     function busy(form, on) { var b = form.querySelector('button[type="submit"]'); if (b) b.disabled = on; }
