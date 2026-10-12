@@ -1,9 +1,0 @@
-[build]
-command = "mkdir -p dist && cp -r index.html styles.css js dist/"
-publish = "dist"
-
-[build.environment]
-SECRETS_SCAN_OMIT_KEYS = "SUPABASE_URL"
-
-[functions]
-directory = "netlify/functions"
