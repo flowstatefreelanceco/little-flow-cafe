@@ -1011,7 +1011,7 @@
     function validEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
     function guard() {
       if (configured) return true;
-      say('Accounts are opening soon. For now, step inside as a guest and everything saves on this device.');
+      say('Accounts are opening soon. Please check back in a little while.');
       return false;
     }
     function showCode(email) {
@@ -1067,11 +1067,11 @@
         var nm = Auth.firstName();
         $('auth').hidden = true; $('auth-in').hidden = false;
         $('auth-hello').textContent = 'Welcome back' + (nm ? ', ' + nm : '');
-        enter.className = 'btn primary big'; enter.textContent = 'Step inside';
+        enter.className = 'btn primary big'; enter.textContent = 'Step inside'; enter.hidden = false;
         $('btn-logout').hidden = false; $('btn-acct').hidden = true;
       } else {
         $('auth').hidden = false; $('auth-in').hidden = true;
-        enter.className = 'btn guest'; enter.textContent = 'Or step inside as a guest. Your cafe saves on this device';
+        enter.className = 'btn guest'; enter.textContent = 'Step inside'; enter.hidden = !!configured;
         $('btn-logout').hidden = true; $('btn-acct').hidden = !configured;
       }
     }
