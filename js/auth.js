@@ -45,21 +45,31 @@
   function msg(e) { return (e && e.message) ? e.message : 'Something went wrong. Please try again.'; }
   function redirect() { return window.location.origin + window.location.pathname; }
 
-  function signUp(first, last, email) {
+  function signUp(first, last, email, password) {
     if (!client) return Promise.resolve({ error: 'not-ready' });
-    return client.auth.signInWithOtp({
-      email: email,
-      options: { shouldCreateUser: true, emailRedirectTo: redirect(), data: { first_name: first, last_name: last, newsletter: 'true' } }
-    }).then(function (r) { return r.error ? { error: msg(r.error) } : { ok: true }; }).catch(function (e) { return { error: msg(e) }; });
+    return client.auth.signUp({
+      email: email, password: password,
+      options: { emailRedirectTo: redirect(), data: { first_name: first, last_name: last, newsletter: 'true' } }
+    }).then(function (r) { return r.error ? { error: msg(r.error) } : { ok: true, needsConfirm: !(r.data && r.data.session) }; }).catch(function (e) { return { error: msg(e) }; });
   }
-  function logIn(email) {
+  function logIn(email, password) {
     if (!client) return Promise.resolve({ error: 'not-ready' });
-    return client.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false, emailRedirectTo: redirect() } })
+    return client.auth.signInWithPassword({ email: email, password: password })
       .then(function (r) { return r.error ? { error: msg(r.error) } : { ok: true }; }).catch(function (e) { return { error: msg(e) }; });
   }
-  function verify(email, code) {
+  function resetPassword(email) {
     if (!client) return Promise.resolve({ error: 'not-ready' });
-    return client.auth.verifyOtp({ email: email, token: code, type: 'email' })
+    return client.auth.resetPasswordForEmail(email, { redirectTo: redirect() })
+      .then(function (r) { return r.error ? { error: msg(r.error) } : { ok: true }; }).catch(function (e) { return { error: msg(e) }; });
+  }
+  function setPassword(password) {
+    if (!client) return Promise.resolve({ error: 'not-ready' });
+    return client.auth.updateUser({ password: password })
+      .then(function (r) { return r.error ? { error: msg(r.error) } : { ok: true }; }).catch(function (e) { return { error: msg(e) }; });
+  }
+  function verify(email, code, type) {
+    if (!client) return Promise.resolve({ error: 'not-ready' });
+    return client.auth.verifyOtp({ email: email, token: code, type: type || 'email' })
       .then(function (r) { return r.error ? { error: msg(r.error) } : { ok: true }; }).catch(function (e) { return { error: msg(e) }; });
   }
   function signOut() {
@@ -79,7 +89,7 @@
   function firstName() { var m = user && user.user_metadata; return (m && m.first_name) || ''; }
 
   Cafe.Auth = {
-    configured: configured, boot: boot, signUp: signUp, logIn: logIn, verify: verify, signOut: signOut, pull: pull, push: push,
+    configured: configured, boot: boot, signUp: signUp, logIn: logIn, verify: verify, resetPassword: resetPassword, setPassword: setPassword, signOut: signOut, pull: pull, push: push,
     user: function () { return user; }, firstName: firstName,
     onChange: function (f) { listeners.push(f); }
   };

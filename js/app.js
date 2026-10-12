@@ -1030,6 +1030,9 @@
     var m = String(err || '').toLowerCase();
     if (m === 'not-ready') return 'We could not reach the sign in service. Please try again in a moment.';
     if (m.indexOf('rate') >= 0 || m.indexOf('seconds') >= 0) return 'That was a lot of emails at once. Please wait a minute and try again.';
+    if (m.indexOf('invalid login') >= 0) return 'That email and password do not match. You can reset your password below.';
+    if (m.indexOf('not confirmed') >= 0) return 'Please confirm your email first. Check your inbox for the link.';
+    if (m.indexOf('password') >= 0 && m.indexOf('least') >= 0) return 'Please choose a password with at least 8 characters.';
     if (m.indexOf('signups not allowed') >= 0 || m.indexOf('not found') >= 0) return 'We could not find that email. Try signing up instead.';
     if (m.indexOf('expired') >= 0 || m.indexOf('invalid') >= 0) return 'That code did not work. Check it and try again, or ask for a new one.';
     return 'Something went wrong. Please try again.';
@@ -1039,9 +1042,13 @@
     var msgEl = $('auth-msg'), pending = '', enter = $('enter');
     $('acct-consent').textContent = CFG.accountConsent || 'By signing up, you agree to join the Flow State community newsletter. You are welcome to unsubscribe after the first issue!';
     function say(t) { msgEl.textContent = t || ''; }
+    var codeKind = 'signup';
+    function allForms(except) {
+      ['auth-signup', 'auth-login', 'auth-reset', 'auth-newpw', 'auth-code'].forEach(function (id) { $(id).hidden = id !== except; });
+    }
     function showTab(name) {
       Array.prototype.forEach.call($('auth-tabs').querySelectorAll('button'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-tab') === name)); });
-      $('auth-signup').hidden = name !== 'signup'; $('auth-login').hidden = name !== 'login'; $('auth-code').hidden = true; $('auth-tabs').hidden = false; say('');
+      allForms(name === 'signup' ? 'auth-signup' : 'auth-login'); $('auth-tabs').hidden = false; say('');
     }
     Array.prototype.forEach.call($('auth-tabs').querySelectorAll('button'), function (b) { b.addEventListener('click', function () { showTab(b.getAttribute('data-tab')); }); });
     function validEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
@@ -1050,31 +1057,59 @@
       say('Accounts are opening soon. Please check back in a little while.');
       return false;
     }
-    function showCode(email) {
-      pending = email;
-      $('auth-signup').hidden = true; $('auth-login').hidden = true; $('auth-tabs').hidden = true; $('auth-code').hidden = false;
-      $('auth-sent').textContent = 'We sent a sign in link and a code to ' + email + '. Tap the link in the email, or type the code here.';
+    function showCode(email, kind) {
+      pending = email; codeKind = kind;
+      allForms('auth-code'); $('auth-tabs').hidden = true;
+      $('auth-sent').textContent = kind === 'recovery'
+        ? 'We sent a reset link and a code to ' + email + '. Tap the link in the email, or type the code here.'
+        : 'We sent a link and a code to ' + email + ' to confirm it is you. Tap the link, or type the code here.';
       say(''); setTimeout(function () { $('code-in').focus(); }, 50);
     }
     function busy(form, on) { var b = form.querySelector('button[type="submit"]'); if (b) b.disabled = on; }
     $('auth-signup').addEventListener('submit', function (ev) {
       ev.preventDefault();
-      var first = $('su-first').value.trim(), last = $('su-last').value.trim(), email = $('su-mail').value.trim();
+      var first = $('su-first').value.trim(), last = $('su-last').value.trim(), email = $('su-mail').value.trim(), pw = $('su-pass').value;
       if (!first || !last) { say('Please add your first and last name.'); return; }
       if (!validEmail(email)) { say('That email does not look quite right.'); return; }
+      if (pw.length < 8) { say('Please choose a password with at least 8 characters.'); return; }
       if (!guard()) return;
       busy(this, true); say('One moment...');
       var f = this;
-      Auth.signUp(first, last, email).then(function (r) { busy(f, false); if (r.error) say(friendly(r.error)); else showCode(email); });
+      Auth.signUp(first, last, email, pw).then(function (r) {
+        busy(f, false);
+        if (r.error) say(friendly(r.error));
+        else if (r.needsConfirm) showCode(email, 'signup');
+        else say('You are in!');
+      });
     });
     $('auth-login').addEventListener('submit', function (ev) {
       ev.preventDefault();
-      var email = $('li-mail').value.trim();
+      var email = $('li-mail').value.trim(), pw = $('li-pass').value;
+      if (!validEmail(email)) { say('That email does not look quite right.'); return; }
+      if (!pw) { say('Please type your password.'); return; }
+      if (!guard()) return;
+      busy(this, true); say('One moment...');
+      var f = this;
+      Auth.logIn(email, pw).then(function (r) { busy(f, false); if (r.error) say(friendly(r.error)); else say('You are in!'); });
+    });
+    $('forgot').addEventListener('click', function () { allForms('auth-reset'); $('auth-tabs').hidden = true; $('rs-mail').value = $('li-mail').value; say(''); });
+    $('reset-back').addEventListener('click', function () { showTab('login'); });
+    $('auth-reset').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var email = $('rs-mail').value.trim();
       if (!validEmail(email)) { say('That email does not look quite right.'); return; }
       if (!guard()) return;
       busy(this, true); say('One moment...');
       var f = this;
-      Auth.logIn(email).then(function (r) { busy(f, false); if (r.error) say(friendly(r.error)); else showCode(email); });
+      Auth.resetPassword(email).then(function (r) { busy(f, false); if (r.error) say(friendly(r.error)); else showCode(email, 'recovery'); });
+    });
+    $('auth-newpw').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var pw = $('np-pass').value;
+      if (pw.length < 8) { say('Please choose a password with at least 8 characters.'); return; }
+      busy(this, true); say('Saving...');
+      var f = this;
+      Auth.setPassword(pw).then(function (r) { busy(f, false); if (r.error) say(friendly(r.error)); else { say('Your new password is saved.'); recovering = false; render(); } });
     });
     $('auth-code').addEventListener('submit', function (ev) {
       ev.preventDefault();
@@ -1082,8 +1117,15 @@
       if (code.length < 6) { say('The code has 6 digits.'); return; }
       busy(this, true); say('Checking...');
       var f = this;
-      Auth.verify(pending, code).then(function (r) { busy(f, false); if (r.error) say(friendly(r.error)); else say('You are in!'); });
+      Auth.verify(pending, code, codeKind).then(function (r) {
+        busy(f, false);
+        if (r.error) say(friendly(r.error));
+        else if (codeKind === 'recovery') { recovering = true; showNewPw(); }
+        else say('You are in!');
+      });
     });
+    var recovering = false;
+    function showNewPw() { $('auth').hidden = false; $('auth-in').hidden = true; $('auth-tabs').hidden = true; allForms('auth-newpw'); enter.hidden = true; say(''); }
     $('code-back').addEventListener('click', function () { showTab('signup'); });
     function logout() {
       Auth.push(S).then(function () { return Auth.signOut(); }).then(function () {
@@ -1100,6 +1142,7 @@
     var WHO = 'cozyCafe.who';
     function hint() { try { return window.localStorage.getItem(WHO); } catch (e) { return null; } }
     function render() {
+      if (recovering) { showNewPw(); return; }
       var u = Auth && Auth.user();
       var known = hint();
       if (u) { try { window.localStorage.setItem(WHO, Auth.firstName() || ' '); } catch (e) { /* ignore */ } }
@@ -1130,7 +1173,7 @@
     }
     render();
     if (configured) {
-      Auth.onChange(function (ev, u) { if (u && ev === 'SIGNED_IN') { $('splash').hidden = $('splash').hidden; afterAuth(); } });
+      Auth.onChange(function (ev, u) { if (ev === 'PASSWORD_RECOVERY') { recovering = true; $('splash').hidden = false; document.body.classList.add('modal-open'); showNewPw(); return; } if (u && ev === 'SIGNED_IN') { $('splash').hidden = $('splash').hidden; afterAuth(); } });
       Auth.boot().then(function (u) { if (u) afterAuth(); else render(); });
       document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden' && Auth.user()) Auth.push(S); });
     }

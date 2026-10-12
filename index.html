@@ -40,12 +40,26 @@
             <label class="field"><span>Last name</span><input id="su-last" name="last" type="text" autocomplete="family-name" maxlength="40" required></label>
           </div>
           <label class="field"><span>Email</span><input id="su-mail" name="email" type="email" autocomplete="email" maxlength="200" required></label>
+          <label class="field"><span>Create a password (at least 8 characters)</span><input id="su-pass" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72" required></label>
           <p class="fine consent" id="acct-consent"></p>
           <button type="submit" class="btn primary">Create my account</button>
         </form>
         <form id="auth-login" class="auth-form" autocomplete="on" novalidate hidden>
           <label class="field"><span>Email</span><input id="li-mail" name="email" type="email" autocomplete="email" maxlength="200" required></label>
-          <button type="submit" class="btn primary">Send me a sign in link</button>
+          <label class="field"><span>Password</span><input id="li-pass" name="password" type="password" autocomplete="current-password" maxlength="72" required></label>
+          <button type="submit" class="btn primary">Log in</button>
+          <button type="button" class="link" id="forgot">Forgot your password?</button>
+        </form>
+        <form id="auth-reset" class="auth-form" novalidate hidden>
+          <p class="fine">Enter your email and we will send a link and a code to choose a new password.</p>
+          <label class="field"><span>Email</span><input id="rs-mail" name="email" type="email" autocomplete="email" maxlength="200" required></label>
+          <button type="submit" class="btn primary">Email me a reset link</button>
+          <button type="button" class="link" id="reset-back">Back to log in</button>
+        </form>
+        <form id="auth-newpw" class="auth-form" novalidate hidden>
+          <p class="fine">Choose a new password for your account.</p>
+          <label class="field"><span>New password (at least 8 characters)</span><input id="np-pass" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72" required></label>
+          <button type="submit" class="btn primary">Save my password</button>
         </form>
         <form id="auth-code" class="auth-form" novalidate hidden>
           <p class="fine" id="auth-sent">Check your email.</p>
@@ -73,11 +87,11 @@
     <nav class="top-actions" aria-label="Cafe menu">
       <button id="btn-mute" class="btn ghost" type="button" aria-pressed="false">Sound on</button>
       <button id="btn-char" class="btn ghost" type="button">My character</button>
-      <button id="btn-acct" class="btn ghost" type="button" hidden>Log in or sign up</button>
-      <button id="btn-logout" class="btn ghost" type="button" hidden>Log out</button>
       <button id="btn-house" class="btn ghost" type="button">Greenhouse</button>
       <button id="btn-tasks" class="btn ghost" type="button">My tasks</button>
       <button id="btn-cards" class="btn ghost" type="button">Daily card</button>
+      <button id="btn-acct" class="btn ghost" type="button" hidden>Log in or sign up</button>
+      <button id="btn-logout" class="btn ghost" type="button" hidden>Log out</button>
     </nav>
   </header>
 
