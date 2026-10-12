@@ -414,13 +414,13 @@
     function dome(col, lift, fr) {
       lift = lift || 0;
       paintShape(function () {
-        g.moveTo(cx - 11.4, hcy + 1.5);
-        g.bezierCurveTo(cx - 13, hy - 3.5 - lift, cx + 13, hy - 3.5 - lift, cx + 11.4, hcy + 1.5);
-        g.lineTo(cx + 10, hcy - 2.2);
-        if (fr === 'curtains') { g.quadraticCurveTo(cx + 4, hcy + 1.5, cx + 0.6, hy - 0.5); g.lineTo(cx - 0.6, hy - 0.5); g.quadraticCurveTo(cx - 4, hcy + 1.5, cx - 10, hcy - 2.2); }
-        else if (fr === 'swoop') { g.quadraticCurveTo(cx + 3, hcy + 0.4, cx - 6, hcy + 1.6); g.quadraticCurveTo(cx - 9, hcy + 0.4, cx - 10, hcy - 2.2); }
-        else if (fr === 'buzz') { g.quadraticCurveTo(cx, hy + 2.5, cx - 10, hcy - 2.2); }
-        else { g.quadraticCurveTo(cx + 5, hcy - 0.6, cx + 1.5, hcy - 3.8); g.quadraticCurveTo(cx - 4, hcy - 0.2, cx - 10, hcy - 2.2); }
+        g.moveTo(cx - 11.8, hcy + 1.5);
+        g.bezierCurveTo(cx - 13.4, hy - 5.4 - lift, cx + 13.4, hy - 5.4 - lift, cx + 11.8, hcy + 1.5);
+        g.lineTo(cx + 10.7, hcy - 2.2);
+        if (fr === 'curtains') { g.quadraticCurveTo(cx + 4, hcy + 1.5, cx + 0.6, hy - 0.5); g.lineTo(cx - 0.6, hy - 0.5); g.quadraticCurveTo(cx - 4, hcy + 1.5, cx - 10.7, hcy - 2.2); }
+        else if (fr === 'swoop') { g.quadraticCurveTo(cx + 3, hcy + 0.4, cx - 6, hcy + 1.6); g.quadraticCurveTo(cx - 9, hcy + 0.4, cx - 10.7, hcy - 2.2); }
+        else if (fr === 'buzz') { g.quadraticCurveTo(cx, hy + 2.5, cx - 10.7, hcy - 2.2); }
+        else { g.quadraticCurveTo(cx + 5, hcy - 0.6, cx + 1.5, hcy - 3.8); g.quadraticCurveTo(cx - 4, hcy - 0.2, cx - 10.7, hcy - 2.2); }
         g.closePath();
       }, col);
       if (fr !== 'buzz') { glow(cx - 3.8, hy + 1.8, 4.2, 1.1, hl, 0.45, -0.25); }

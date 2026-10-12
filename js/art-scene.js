@@ -539,7 +539,7 @@
         var spec = isPlayer ? self.state.player : Pe.roster[tb.id][s.r];
         self.people.push({
           id: tb.id + idx, table: tb.id, cx: tb.cx + s.dx, T: tb.ty + (s.dx === 0 ? -24 : -14), spec: spec, isPlayer: isPlayer, dx: s.dx,
-          ph: r() * 6.28, chair: CHAIRS[(idx + (tb.id === 'fl' ? 1 : 0)) % CHAIRS.length], bubble: null, nextBubble: 6 + r() * 14, waveUntil: 0
+          ph: r() * 6.28, chair: CHAIRS[(idx + (tb.id === 'fl' ? 1 : 0)) % CHAIRS.length], bubble: null, nextBubble: 18 + r() * 40, waveUntil: 0
         });
       });
     });
@@ -678,7 +678,7 @@
       if (!p.bubble && t > p.nextBubble) {
         var list = mode === 'break' ? breakIcons : focusIcons;
         p.bubble = { name: list[Math.floor(Math.random() * list.length)], until: t + 2.6 };
-        p.nextBubble = t + (mode === 'break' ? 5 + Math.random() * 8 : 14 + Math.random() * 26);
+        p.nextBubble = t + (mode === 'break' ? 22 + Math.random() * 25 : 45 + Math.random() * 60);
       }
     });
   };
@@ -1020,17 +1020,6 @@
       var lx = Math.round(tb.cx + p.dx * 0.55), ly = Math.round(tb.ty + (p.dx === 0 ? -4 : 0)), k = Math.abs(Math.round(p.cx));
       self.scaled(g, lx, ly, 1.2, function () { Pe.drawLaptop(lx, ly, (Pe.Options.laptopColors[p.spec.laptop] || '#e9e4da'), ['#f4a6b8', '#7fc4a0', '#8ab8e8', '#f5c84a', '#b48ae0'][k % 5], k % 4); });
     });
-    mine.forEach(function (p) {
-      if (p.waveUntil > t || cheerP > 0) return;
-      var O = Pe.Options, skin = T(O.skin[p.spec.skin] || O.skin[2]), sl = T(O.outfitColors[p.spec.outfitColor] || O.outfitColors[0]);
-      var lx = Math.round(tb.cx + p.dx * 0.55), ly = Math.round(tb.ty + (p.dx === 0 ? -4 : 0));
-      var typing = mode !== 'break' && Math.sin(t * 0.6 + p.ph) > -0.35;
-      [-1, 1].forEach(function (d) {
-        var hx = lx + d * 21, hy = ly + 6 + (typing ? Math.sin(t * 13 + p.ph * 3 + d) * 0.7 : 0);
-        g.lineCap = 'round'; g.strokeStyle = sl; g.lineWidth = 4.6; g.beginPath(); g.moveTo(hx - d * 5, hy - 10); g.lineTo(hx - d * 1, hy - 1); g.stroke();
-        g.fillStyle = skin; g.beginPath(); g.ellipse(hx, hy, 3.2, 2.5, 0, 0, 6.2832); g.fill();
-      });
-    });
     if (mode !== 'break') mine.forEach(function (p) {
       var cyc = (t * 0.22 + p.ph * 0.37) % 1;
       if (cyc > 0.3 || Math.sin(t * 0.6 + p.ph) <= -0.35) return;
@@ -1093,7 +1082,7 @@
   };
 
   Scene.prototype.drawOverlays = function (g, t) {
-    this.people.forEach(function (p) { if (p.bubble) bubble(p.cx, p.T - 62 + Math.round(Math.sin(t * 2 + p.ph)), p.bubble.name); });
+    this.people.forEach(function (p) { if (p.bubble) bubble(p.cx, p.T - 62 + Math.round(Math.sin(t * 1.1 + p.ph)), p.bubble.name); });
     this.drawParticles(g);
     var h = this.hover;
     if (h && h.rect) {
