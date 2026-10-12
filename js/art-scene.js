@@ -62,15 +62,15 @@
       items: [{ k: 'cup', ox: -30, oy: 4 }, { k: 'book', ox: 20, oy: 8 }, { k: 'tea', ox: 34, oy: 0 }] },
     { id: 'fl', cx: 176, ty: 376, rx: 58, cloth: 'checks', seats: [{ dx: -62, r: 1 }, { dx: 62, r: 2 }],
       items: [{ k: 'cup', ox: -14, oy: 5 }, { k: 'pastry', ox: 16, oy: 6 }] },
-    { id: 'fr', cx: 422, ty: 378, rx: 52, cloth: 'wood', seats: [{ dx: 62, r: 0 }],
+    { id: 'fr', cx: 404, ty: 378, rx: 52, cloth: 'wood', seats: [{ dx: 62, r: 0 }],
       items: [{ k: 'cup', ox: 14, oy: 6 }, { k: 'pastry', ox: -4, oy: 8 }, { k: 'book', ox: 26, oy: 0 }] }
   ];
   var PLAYER_SEAT = { table: 'back', index: 1 };
   var CHAIRS = ['#c4572f', '#2f7f8a', '#d9a02a', '#7a4fb0', '#b8302f'];
-  var NOOK = { x: 40, y: 362 };
+  var NOOK = { x: 40, y: 342 };
   var HEARTH = { x: 98, y: 322 };
-  var AVO = { x: 524, y: 408 };
-  var DOGSPOT = { x: 551, y: 296 };
+  var AVO = { x: 504, y: 410 };
+  var DOGSPOT = { x: 555, y: 298 };
   var BARISTA = { cx: 436, T: 232 };
   var CNT = { x: 344, y: 230, w: 212 };
   var BC1 = { x: 10, y: 66, w: 50, h: 234, rows: 4 };
@@ -226,7 +226,7 @@
   }
   var CAT_SC = 0.667;
   var TAN_CAT = { x: 214, y: 201 };
-  var TOWER = { x: 546, y: 396 };
+  var TOWER = { x: 550, y: 398 };
 
   /* ---------- the scene ---------- */
   function buildNook() {
@@ -349,8 +349,20 @@
     var cv = C.makeCanvas(W, H), g = cv.getContext('2d'), r, i, x, y;
     C.setCtx(g);
     /* wall */
-    box(g, 0, 0, W, FLOORY, PAL.wall);
-    g.save(); archPath(g, GLASS.x - 26, GLASS.y - 26, GLASS.w + 52, 190); g.fillStyle = T(PAL.wallHi); g.fill(); g.restore();
+    box(g, 0, 0, W, FLOORY, '#cfa87c');
+    var py0, pk = 0;
+    for (py0 = 0; py0 < FLOORY; py0 += 13, pk++) {
+      box(g, 0, py0, W, 13, pk % 2 ? '#c99f72' : '#d3ac80');
+      g.fillStyle = 'rgba(96,58,32,0.28)'; g.fillRect(0, py0 + 12, W, 1);
+      g.fillStyle = 'rgba(255,236,200,0.16)'; g.fillRect(0, py0, W, 1);
+      g.strokeStyle = 'rgba(110,68,38,0.16)'; g.lineWidth = 0.7;
+      for (var gk = 0; gk < 7; gk++) {
+        var gx = ((pk * 97 + gk * 83) % W), gl = 30 + ((pk * 31 + gk * 17) % 60), gy = py0 + 3 + ((gk * 5 + pk * 3) % 8);
+        g.beginPath(); g.moveTo(gx, gy); g.quadraticCurveTo(gx + gl * 0.5, gy + (gk % 2 ? 1.4 : -1.4), gx + gl, gy); g.stroke();
+      }
+      var jx = (pk * 131 + 40) % (W - 20); g.fillStyle = 'rgba(96,58,32,0.22)'; g.fillRect(jx, py0, 1, 13);
+    }
+    g.save(); archPath(g, GLASS.x - 26, GLASS.y - 26, GLASS.w + 52, 190); g.fillStyle = 'rgba(255,226,170,0.16)'; g.fill(); g.restore();
     box(g, 0, 0, W, 10, PAL.cream); box(g, 0, 10, W, 3, shade(PAL.wall, -0.12));
     /* wainscot */
     box(g, 0, 238, W, 62, PAL.wain);
@@ -909,11 +921,11 @@
     [0, 1, 2, 3, 5, 6, 13, 14].forEach(function (id) { this.drawOnePlant(g, t, Pl.SLOTS[id]); }, this);
     // a little plant shelf on the chimney wall
     box(g, 62, 74, 76, 5, PAL.woodLt, 1.5); box(g, 62, 79, 76, 2, shade(PAL.wall, -0.2)); box(g, 70, 81, 4, 8, PAL.woodDk, 1); box(g, 126, 81, 4, 8, PAL.woodDk, 1);
-    [['trailBerry', 76, 74, 26], ['bouquet', 100, 74, 28], ['roseTeal', 124, 74, 26]].forEach(function (d) { Pl.drawDecor(d[0], d[1], d[2], d[3], this.time); }, this);
+    [['trailMocha', 76, 74, 26], ['rubberBlue', 100, 74, 28], ['carnGold', 124, 74, 26]].forEach(function (d) { Pl.drawDecor(d[0], d[1], d[2], d[3], this.time); }, this);
     // more plants in the wall shelves
-    [['carnGold', 372, 118, 24], ['astilbeHoney', 404, 118, 26], ['rosePink', 466, 172, 24], ['bouquet', 512, 172, 24], ['trailMocha', 372, 172, 22]].forEach(function (d) { Pl.drawDecor(d[0], d[1], d[2], d[3], this.time); }, this);
+    [['rubberPlum', 372, 118, 26], ['astilbeHoney', 404, 118, 26], ['rubberCocoa', 466, 172, 26], ['rosePink', 512, 172, 24], ['trailBerry', 372, 172, 24]].forEach(function (d) { Pl.drawDecor(d[0], d[1], d[2], d[3], this.time); }, this);
     catSprite(g, 'tan', Math.floor(this.time * 2.5), TAN_CAT.x, TAN_CAT.y, CAT_SC);
-    [['astilbeHoney', 34, 66, 52], ['carnGold', 150, 146, 38], ['trailMocha', 556, 74, 44, 8],
+    [['rubber', 34, 66, 58], ['carnGold', 150, 146, 38], ['trailMocha', 556, 74, 44, 8],
      ['roseTeal', 438, 172, 28], ['bouquet', 168, 146, 34], ['roseTeal', 544, 118, 26], ['carnPink', 452, 118, 30], ['astilbePlum', 546, 172, 30], ['rosePink', 328, 201, 34], ['carnPink', 194, 201, 30], ['bouquet', 66, 200, 38], ['trailBerry', 255, 58, 40, 8], ['trailMocha', 470, 46, 30, 6], ['trailBerry', 506, 48, 30, 6], ['roseSage', 478, 118, 22]].forEach(function (d) {
       if (d[0] === 'bouquet') return;
       Pl.drawDecor(d[0], d[1], d[2], d[3], t, d[4]);
@@ -1019,9 +1031,9 @@
       g.restore();
     });
     tb.items.forEach(function (it) { var ix = Math.round(tb.cx + it.ox), iy = Math.round(tb.ty + it.oy); self.scaled(g, ix, iy, 1.25, function () { drawItem(it.k, ix, iy, t); }); });
-    if (tb.id === 'fr') { this.drawOnePlant(g, t, Pl.SLOTS[7]); Pl.drawDecor('astilbeHoney', tb.cx + 28, tb.ty - 2, 30, t); }
-    if (tb.id === 'fl') Pl.drawDecor('bouquet', tb.cx - 20, tb.ty - 3, 28, t);
-    if (tb.id === 'back') { Pl.drawDecor('astilbePlum', tb.cx - 17, tb.ty - 3, 26, t); Pl.drawDecor('carnPink', tb.cx + 18, tb.ty - 3, 26, t); }
+    if (tb.id === 'fr') { this.drawOnePlant(g, t, Pl.SLOTS[7]); Pl.drawDecor('rubberBlue', tb.cx + 28, tb.ty - 2, 28, t); }
+    if (tb.id === 'fl') Pl.drawDecor('rubber', tb.cx - 20, tb.ty - 3, 28, t);
+    if (tb.id === 'back') { Pl.drawDecor('rubberPlum', tb.cx - 17, tb.ty - 3, 24, t); Pl.drawDecor('roseSage', tb.cx + 18, tb.ty - 3, 26, t); }
     if (tb.id === 'fl') this.drawOnePlant(g, t, Pl.SLOTS[15]);
   };
 
@@ -1116,7 +1128,7 @@
       { y: this.avoPos.y, fn: function () { var p = self.avoPos; self.scaled(g, p.x, p.y, 1.5, function () { self.drawAvocado(g, t); }); } },
       { y: c.y, fn: function () { self.softShadow(g, c.x, c.y + 1, 12, 3, 0.2); catSprite(g, 'white', Math.floor(t * 2) + (self.catPetUntil > t ? 1 : 0), c.x, c.y, CAT_SC); } }
     ];
-    list.push({ y: 420, fn: function () { Pl.drawDecor('rubberCocoa', 28, 420, 92, t); } });
+    list.push({ y: 432, fn: function () { Pl.drawDecor('rubberCocoa', 26, 432, 78, t); } });
     list.push({ y: TOWER.y, fn: function () { self.softShadow(g, TOWER.x, TOWER.y + 1, 22, 4, 0.22); catSprite(g, 'tower', 0, TOWER.x, TOWER.y, CAT_SC); catSprite(g, 'tan', Math.floor(t * 2.5) + 2, self.dogPos.x, self.dogPos.y, CAT_SC, true); } });
     TABLES.forEach(function (tb) { list.push({ y: tb.ty + 38, fn: function () { self.drawTableGroup(g, t, tb); } }); });
     list.sort(function (a, b) { return a.y - b.y; });
