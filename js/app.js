@@ -1087,7 +1087,7 @@
     $('code-back').addEventListener('click', function () { showTab('signup'); });
     function logout() {
       Auth.push(S).then(function () { return Auth.signOut(); }).then(function () {
-        try { window.localStorage.removeItem(KEY); window.localStorage.removeItem(KEY + '.bak'); } catch (e) { /* ignore */ }
+        try { window.localStorage.removeItem(KEY); window.localStorage.removeItem(KEY + '.bak'); window.localStorage.removeItem('cozyCafe.who'); } catch (e) { /* ignore */ }
         window.location.reload();
       });
     }
@@ -1097,10 +1097,14 @@
       $('splash').hidden = false; document.body.classList.add('modal-open');
       var f = $('su-first'); if (f) f.focus();
     });
+    var WHO = 'cozyCafe.who';
+    function hint() { try { return window.localStorage.getItem(WHO); } catch (e) { return null; } }
     function render() {
       var u = Auth && Auth.user();
-      if (u) {
-        var nm = Auth.firstName();
+      var known = hint();
+      if (u) { try { window.localStorage.setItem(WHO, Auth.firstName() || ' '); } catch (e) { /* ignore */ } }
+      if (u || (configured && known !== null)) {
+        var nm = u ? Auth.firstName() : known.trim();
         $('auth').hidden = true; $('auth-in').hidden = false;
         $('auth-hello').textContent = 'Welcome back' + (nm ? ', ' + nm : '');
         enter.className = 'btn primary big'; enter.textContent = 'Step inside'; enter.hidden = false;
