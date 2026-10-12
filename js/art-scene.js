@@ -905,7 +905,7 @@
     [0, 1, 2, 3, 5, 6, 13, 14].forEach(function (id) { this.drawOnePlant(g, t, Pl.SLOTS[id]); }, this);
     catSprite(g, 'tan', Math.floor(this.time * 2.5), TAN_CAT.x, TAN_CAT.y, CAT_SC);
     [['astilbeHoney', 34, 66, 52], ['carnGold', 150, 146, 38], ['trailBerry', 112, 66, 44, 8], ['trailMocha', 556, 74, 44, 8],
-     ['rubberCocoa', 214, 306, 76], ['roseTeal', 438, 172, 28], ['bouquet', 168, 146, 34], ['roseTeal', 544, 118, 26], ['carnPink', 452, 118, 30], ['astilbePlum', 546, 172, 30], ['rosePink', 328, 201, 34], ['carnPink', 194, 201, 30], ['bouquet', 66, 200, 38]].forEach(function (d) {
+     ['rubberCocoa', 214, 306, 76], ['roseTeal', 438, 172, 28], ['bouquet', 168, 146, 34], ['roseTeal', 544, 118, 26], ['carnPink', 452, 118, 30], ['astilbePlum', 546, 172, 30], ['rosePink', 328, 201, 34], ['carnPink', 194, 201, 30], ['bouquet', 66, 200, 38], ['trailBerry', 255, 58, 40, 8], ['trailMocha', 470, 46, 30, 6], ['trailBerry', 506, 48, 30, 6], ['carnPink', 186, 306, 46], ['roseSage', 478, 118, 22]].forEach(function (d) {
       if (d[0] === 'bouquet') return;
       Pl.drawDecor(d[0], d[1], d[2], d[3], t, d[4]);
     });
@@ -1105,7 +1105,7 @@
       { y: this.avoPos.y, fn: function () { var p = self.avoPos; self.scaled(g, p.x, p.y, 1.5, function () { self.drawAvocado(g, t); }); } },
       { y: c.y, fn: function () { self.softShadow(g, c.x, c.y + 1, 12, 3, 0.2); catSprite(g, 'white', Math.floor(t * 2) + (self.catPetUntil > t ? 1 : 0), c.x, c.y, CAT_SC); } }
     ];
-    [['roseSage', 18, 404, 64], ['astilbePlum', 118, 432, 46], ['carnGold', 404, 430, 46], ['rubberBlue', 566, 392, 58]].forEach(function (d) {
+    [['roseSage', 18, 404, 64], ['astilbeHoney', 456, 312, 44], ['roseSage', 506, 312, 40], ['astilbePlum', 118, 432, 46], ['carnGold', 404, 430, 46], ['rubberBlue', 566, 392, 58], ['roseTeal', 350, 432, 40], ['astilbePlum', 470, 432, 38], ['carnPink', 238, 432, 34]].forEach(function (d) {
       list.push({ y: d[2], fn: function () { Pl.drawDecor(d[0], d[1], d[2], d[3], t); } });
     });
     TABLES.forEach(function (tb) { list.push({ y: tb.ty + 38, fn: function () { self.drawTableGroup(g, t, tb); } }); });
