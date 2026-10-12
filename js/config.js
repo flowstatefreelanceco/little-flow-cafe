@@ -5,12 +5,12 @@ window.CAFE_CONFIG = {
 
   // Where newsletter signups go.
   //   'netlify'  = Netlify Forms (zero setup, signups show up in your Netlify dashboard)
-  //   'webhook'  = POST the email as JSON to webhookUrl (Zapier, Make, Brevo, a Netlify function, etc.)
+  //   'webhook'  = POST the email as JSON to webhookUrl (Zapier, Make, Brevo, a serverless function, etc.)
   //   'off'      = hide the signup box
   signup: {
-    mode: 'netlify',
+    mode: 'webhook',
     formName: 'cafe-newsletter',
-    webhookUrl: ''
+    webhookUrl: '/api/subscribe'
   },
 
   // Accounts and cloud saving (Supabase). Leave both empty to run without accounts.

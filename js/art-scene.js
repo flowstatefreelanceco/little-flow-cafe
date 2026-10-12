@@ -76,7 +76,7 @@
   var BC1 = { x: 10, y: 66, w: 50, h: 234, rows: 4 };
   var BC2 = { x: 140, y: 146, w: 46, h: 154, rows: 3 };
   var SHELF1 = { x: 358, y: 118, w: 196 }, SHELF2 = { x: 358, y: 172, w: 196 };
-  var CHALK = { x: 438, y: 52, w: 60, h: 52 };
+  var CHALK = { x: 438, y: 29, w: 60, h: 50 };
   var WAYPOINTS = [[150, 324], [236, 332], [330, 316], [404, 336], [470, 360], [384, 412], [300, 420], [210, 414], [124, 404], [556, 380], [330, 392]];
 
   /* the lamps you can switch (x, y is the bottom middle of each) */
@@ -926,7 +926,7 @@
     [['rubberPlum', 372, 118, 26, undefined, 'teal'], ['astilbeHoney', 404, 118, 26], ['rubberCocoa', 466, 172, 26, undefined, 'mustard'], ['rosePink', 512, 172, 24], ['trailBerry', 372, 172, 24]].forEach(function (d) { Pl.drawDecor(d[0], d[1], d[2], d[3], this.time, d[4], d[5]); }, this);
     catSprite(g, 'tan', Math.floor(this.time * 2.5), TAN_CAT.x, TAN_CAT.y, CAT_SC);
     [['rubber', 34, 66, 58, undefined, 'rose'], ['carnGold', 150, 146, 38], ['trailMocha', 556, 74, 44, 8],
-     ['roseTeal', 438, 172, 28], ['bouquet', 168, 146, 34], ['roseTeal', 544, 118, 26], ['carnPink', 452, 118, 30], ['astilbePlum', 546, 172, 30], ['rosePink', 328, 201, 34], ['carnPink', 194, 201, 30], ['bouquet', 66, 200, 38], ['trailBerry', 255, 58, 40, 8], ['trailMocha', 470, 46, 30, 6], ['trailBerry', 506, 48, 30, 6], ['roseSage', 478, 118, 22]].forEach(function (d) {
+     ['roseTeal', 438, 172, 28], ['bouquet', 168, 146, 34], ['roseTeal', 544, 118, 26], ['carnPink', 452, 118, 30], ['astilbePlum', 546, 172, 30], ['rosePink', 328, 201, 34], ['carnPink', 194, 201, 30], ['bouquet', 66, 200, 38], ['trailBerry', 255, 58, 40, 8], ['trailMocha', 412, 46, 30, 6], ['roseSage', 478, 118, 22]].forEach(function (d) {
       if (d[0] === 'bouquet') return;
       Pl.drawDecor(d[0], d[1], d[2], d[3], t, d[4], d[5]);
     });

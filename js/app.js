@@ -915,7 +915,7 @@
         form.reset(); toast('Welcome to the community.');
       }).catch(function () {
         status.className = 'status err';
-        status.textContent = 'Signups only work once the cafe is live on Netlify. Please try again after it is published.';
+        status.textContent = 'Signups only work once the cafe is live online. Please try again after it is published.';
       }).then(function () { $('su-btn').disabled = false; });
     });
   }
