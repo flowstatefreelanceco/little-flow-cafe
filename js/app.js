@@ -953,7 +953,7 @@
       case 'player': scene.heartAtPlayer(); openCharacter(); break;
       case 'npc': scene.waveAt(h.id); sfx('pop'); break;
       case 'cat': scene.petCat(); sfx('purr'); break;
-      case 'dog': scene.emit('heart', h.rect.x + 14, h.rect.y, 3, { spread: 6 }); sfx('pop'); toast('Waffles wiggled a little in his sleep.'); break;
+      case 'dog': scene.emit('heart', h.rect.x + 14, h.rect.y, 3, { spread: 6 }); sfx('pop'); toast('Waffles purred and kept washing his face.'); break;
       case 'pebble': scene.emit('heart', h.rect.x + 12, h.rect.y, 3, { spread: 6 }); sfx('purr'); break;
       case 'cards': openCards(); break;
       case 'fire': toggleFire(); break;

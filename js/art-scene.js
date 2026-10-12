@@ -70,7 +70,7 @@
   var NOOK = { x: 62, y: 414 };
   var HEARTH = { x: 98, y: 322 };
   var AVO = { x: 524, y: 408 };
-  var DOGSPOT = { x: 262, y: 410 };
+  var DOGSPOT = { x: 551, y: 296 };
   var BARISTA = { cx: 436, T: 232 };
   var CNT = { x: 344, y: 230, w: 212 };
   var BC1 = { x: 10, y: 66, w: 50, h: 234, rows: 4 };
@@ -210,7 +210,7 @@
     if (CAT_IMG) return CAT_IMG;
     var src = window.CafeCatArt; if (!src) return null;
     CAT_IMG = {};
-    ['tan', 'white', 'sleep'].forEach(function (k) {
+    ['tan', 'white', 'sleep', 'tower'].forEach(function (k) {
       CAT_IMG[k] = src[k].map(function (f) { var im = new Image(); im.src = f.uri; im.w = f.w; im.h = f.h; return im; });
     });
     return CAT_IMG;
@@ -226,6 +226,7 @@
   }
   var CAT_SC = 0.667;
   var TAN_CAT = { x: 214, y: 201 };
+  var TOWER = { x: 546, y: 396 };
 
   /* ---------- the scene ---------- */
   function buildNook() {
@@ -645,12 +646,8 @@
     R(x - 2, fy + 4, 5, 1, '#8a3a3a'); P(x - 3, fy + 3, '#8a3a3a'); P(x + 3, fy + 3, '#8a3a3a'); R(x - 1, fy + 5, 3, 1, '#c85a62');
   };
   Scene.prototype.drawDog = function (g, t) {
-    var x = this.dogPos.x, y = this.dogPos.y, br = Math.sin(t * 1.4) > 0.2 ? 1 : 0;
-    E(x, y + 1, 14, 4, 'rgba(90,60,40,0.18)');
-    R(x - 8, y - 5 - br, 15, 5 + br, '#d8a878'); R(x - 8, y - 5 - br, 15, 1, '#e8bd90');
-    R(x + 5, y - 6, 6, 6, '#d8a878'); R(x + 9, y - 6, 3, 5, '#8a5a36'); R(x + 10, y - 3, 1, 1, '#2a1f2a'); R(x + 7, y - 3, 1, 1, '#5a3b2b');
-    R(x - 10, y - 4, 3, 2, '#d8a878'); R(x - 4, y - 5 - br, 3, 2, '#fff0dc');
-    if (Math.random() < 0.004) this.emit('z', x + 10, y - 10, 1, { spread: 2 });
+    var x = this.dogPos.x, y = this.dogPos.y;
+    g.fillStyle = 'rgba(96,52,30,0.16)'; g.beginPath(); g.ellipse(x, y + 1, 12, 3, 0, 0, 6.2832); g.fill();
   };
 
   Scene.prototype.softShadow = function (g, x, y, rx, ry, a) {
@@ -717,7 +714,7 @@
     if (inRect(x, y, r)) return { type: 'cat', id: 'cat', name: 'Biscuit', rect: r };
     r = { x: TAN_CAT.x - 16, y: TAN_CAT.y - 34, w: 32, h: 36 };
     if (inRect(x, y, r)) return { type: 'cat', id: 'cat', name: 'Mochi', rect: r };
-    r = { x: this.dogPos.x - 22, y: this.dogPos.y - 20, w: 44, h: 22 };
+    r = { x: this.dogPos.x - 16, y: this.dogPos.y - 34, w: 32, h: 36 };
     if (inRect(x, y, r)) return { type: 'dog', id: 'dog', name: 'Waffles', rect: r };
     r = { x: this.hearthPos.x - 22, y: this.hearthPos.y - 26, w: 44, h: 28 };
     if (inRect(x, y, r)) return { type: 'pebble', id: 'pebble', name: 'Pebble', rect: r };
@@ -1101,13 +1098,14 @@
       { y: this.hearthPos.y, fn: function () { var p = self.hearthPos; self.scaled(g, p.x, p.y, 1.4, function () { self.drawHearthPet(g, t); }); catSprite(g, 'sleep', Math.floor(t * 2), p.x, p.y - 3, CAT_SC); } },
       { y: this.nook.y, fn: function () { var p = self.nook; self.scaled(g, p.x, p.y, 1.3, function () { self.drawNook(g, t); }); } },
       { y: CNT.y + 70, fn: function () { self.drawCounterGroup(g, t); } },
-      { y: this.dogPos.y, fn: function () { var p = self.dogPos; self.scaled(g, p.x, p.y, 1.4, function () { self.drawDog(g, t); }); } },
+      { y: this.dogPos.y, fn: function () { var p = self.dogPos; } },
       { y: this.avoPos.y, fn: function () { var p = self.avoPos; self.scaled(g, p.x, p.y, 1.5, function () { self.drawAvocado(g, t); }); } },
       { y: c.y, fn: function () { self.softShadow(g, c.x, c.y + 1, 12, 3, 0.2); catSprite(g, 'white', Math.floor(t * 2) + (self.catPetUntil > t ? 1 : 0), c.x, c.y, CAT_SC); } }
     ];
-    [['roseSage', 18, 404, 64], ['astilbeHoney', 456, 312, 44], ['roseSage', 506, 312, 40], ['astilbePlum', 118, 432, 46], ['carnGold', 404, 430, 46], ['rubberBlue', 566, 392, 58], ['roseTeal', 350, 432, 40], ['astilbePlum', 470, 432, 38], ['carnPink', 238, 432, 34]].forEach(function (d) {
+    [['roseSage', 18, 404, 64], ['astilbeHoney', 456, 312, 44], ['roseSage', 506, 312, 40], ['astilbePlum', 118, 432, 46], ['carnGold', 404, 430, 46], ['roseTeal', 350, 432, 40], ['astilbePlum', 470, 432, 38], ['carnPink', 238, 432, 34]].forEach(function (d) {
       list.push({ y: d[2], fn: function () { Pl.drawDecor(d[0], d[1], d[2], d[3], t); } });
     });
+    list.push({ y: TOWER.y, fn: function () { self.softShadow(g, TOWER.x, TOWER.y + 1, 22, 4, 0.22); catSprite(g, 'tower', 0, TOWER.x, TOWER.y, CAT_SC); catSprite(g, 'tan', Math.floor(t * 2.5) + 2, self.dogPos.x, self.dogPos.y, CAT_SC, true); } });
     TABLES.forEach(function (tb) { list.push({ y: tb.ty + 38, fn: function () { self.drawTableGroup(g, t, tb); } }); });
     list.sort(function (a, b) { return a.y - b.y; });
     list.forEach(function (it) { it.fn(); });
