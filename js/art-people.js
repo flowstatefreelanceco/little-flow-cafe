@@ -505,36 +505,23 @@
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
     c.clearRect(0, 0, w, h);
-    c.fillStyle = '#fbf0dc'; c.fillRect(0, 0, w, h);
-    function wash(x, y, r, col, a) {
-      var g = c.createRadialGradient(x, y, 0, x, y, r);
-      g.addColorStop(0, col); g.addColorStop(1, 'rgba(255,255,255,0)');
-      c.globalAlpha = a; c.fillStyle = g; c.fillRect(0, 0, w, h); c.globalAlpha = 1;
-    }
-    wash(w * 0.2, h * 0.18, w * 0.6, '#f6b7c4', 0.55);
-    wash(w * 0.85, h * 0.25, w * 0.55, '#ffd89a', 0.6);
-    wash(w * 0.7, h * 0.95, w * 0.6, '#a9d8b8', 0.55);
-    wash(w * 0.1, h * 0.9, w * 0.5, '#b9cdf0', 0.45);
-    // soft table
-    c.fillStyle = 'rgba(214,160,104,0.55)';
-    c.beginPath(); c.ellipse(w / 2, h * 0.95, w * 0.62, h * 0.16, 0, 0, 6.283); c.fill();
+    // flat, calm backdrop: dusty wall, a cream arched window, a wood table
+    c.fillStyle = '#e3c4a0'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#c4806a'; c.fillRect(0, h * 0.66, w, h * 0.34);
+    c.fillStyle = '#efe0c8'; c.beginPath(); c.moveTo(w * 0.2, h * 0.66); c.lineTo(w * 0.2, h * 0.3); c.arc(w * 0.5, h * 0.3, w * 0.3, Math.PI, 0); c.lineTo(w * 0.8, h * 0.66); c.closePath(); c.fill();
+    c.fillStyle = '#b9d0d6'; c.beginPath(); c.moveTo(w * 0.24, h * 0.66); c.lineTo(w * 0.24, h * 0.3); c.arc(w * 0.5, h * 0.3, w * 0.26, Math.PI, 0); c.lineTo(w * 0.76, h * 0.66); c.closePath(); c.fill();
+    c.fillStyle = '#a9c0a0'; c.beginPath(); c.moveTo(w * 0.24, h * 0.66); c.quadraticCurveTo(w * 0.4, h * 0.5, w * 0.58, h * 0.58); c.quadraticCurveTo(w * 0.7, h * 0.52, w * 0.76, h * 0.6); c.lineTo(w * 0.76, h * 0.66); c.closePath(); c.fill();
+    c.fillStyle = '#c99568'; c.beginPath(); c.ellipse(w / 2, h * 0.95, w * 0.62, h * 0.16, 0, 0, 6.283); c.fill();
     var dw = SW * sc, dh = SH * sc;
     var dx = (w - dw) / 2, dy = h * 0.93 - AT * sc;
     c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
-    c.save(); c.shadowColor = 'rgba(120,80,50,0.22)'; c.shadowBlur = 16; c.shadowOffsetY = 6;
-    c.drawImage(sp, dx, dy, dw, dh); c.restore();
+    c.drawImage(sp, dx, dy, dw, dh);
     // laptop as a soft rounded shape
     c.globalCompositeOperation = 'source-over'; c.globalAlpha = 0.9;
     c.fillStyle = '#efe9df'; c.beginPath();
     if (c.roundRect) c.roundRect(w / 2 - w * 0.15, h * 0.86, w * 0.3, h * 0.12, 10); else c.rect(w / 2 - w * 0.15, h * 0.86, w * 0.3, h * 0.12);
     c.fill();
     c.fillStyle = '#f4a6b8'; c.globalAlpha = 0.9; c.beginPath(); c.arc(w / 2, h * 0.92, w * 0.02, 0, 6.283); c.fill();
-    // paper grain
-    c.globalAlpha = 1; c.globalCompositeOperation = 'multiply';
-    for (var i = 0; i < 900; i++) {
-      c.fillStyle = 'rgba(150,115,80,' + (0.02 + ((i * 37) % 7) * 0.006) + ')';
-      c.fillRect(((i * 7919) % w), ((i * 104729) % h), 2, 2);
-    }
     c.globalCompositeOperation = 'source-over';
   }
 

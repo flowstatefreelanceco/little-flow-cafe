@@ -102,6 +102,24 @@
         </div>
         <label class="check-line"><input type="checkbox" id="calm"> Calm motion (slower, fewer moving things)</label>
       </section>
+
+      <section class="card" aria-labelledby="sounds-h">
+        <h2 id="sounds-h">Sounds</h2>
+        <div id="sound-rows"></div>
+        <div class="master">
+          <label for="master-vol">Master volume</label>
+          <input id="master-vol" type="range" min="0" max="100" value="80">
+        </div>
+        <label class="check-line"><input type="checkbox" id="sfx"> Soft sound effects (chimes, watering, sparkles)</label>
+      </section>
+
+      <section class="card jar-card" aria-labelledby="jar-h">
+        <h2 id="jar-h">Your star jar</h2>
+        <div class="jar-wrap">
+          <canvas id="jar" width="220" height="240" role="img" aria-label="A glass jar filling up with colorful stars"></canvas>
+          <p class="jar-text" id="jar-text"></p>
+        </div>
+      </section>
     </section>
 
     <aside class="side">
@@ -145,24 +163,6 @@
         </form>
         <button id="clear-done" class="link" type="button" hidden>Clear finished tasks</button>
         <p class="fine" id="save-note">Your list is saved on this device. Log in to keep it everywhere.</p>
-      </section>
-
-      <section class="card" aria-labelledby="sounds-h">
-        <h2 id="sounds-h">Sounds</h2>
-        <div id="sound-rows"></div>
-        <div class="master">
-          <label for="master-vol">Master volume</label>
-          <input id="master-vol" type="range" min="0" max="100" value="80">
-        </div>
-        <label class="check-line"><input type="checkbox" id="sfx"> Soft sound effects (chimes, watering, sparkles)</label>
-      </section>
-
-      <section class="card jar-card" aria-labelledby="jar-h">
-        <h2 id="jar-h">Your star jar</h2>
-        <div class="jar-wrap">
-          <canvas id="jar" width="220" height="240" role="img" aria-label="A glass jar filling up with colorful stars"></canvas>
-          <p class="jar-text" id="jar-text"></p>
-        </div>
       </section>
 
       <section class="card" aria-labelledby="garden-h">
@@ -270,6 +270,7 @@
   <script src="js/affirmations.js"></script>
   <script src="js/art-core.js"></script>
   <script src="js/art-people.js"></script>
+  <script src="js/plant-data.js"></script>
   <script src="js/art-plants.js"></script>
   <script src="js/art-scene.js"></script>
   <script src="js/audio.js"></script>
