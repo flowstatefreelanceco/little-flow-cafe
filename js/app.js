@@ -627,7 +627,11 @@
         if (scene) scene.sparkle(id, false);
         toast('Swapped for a ' + Pl.resolve(s, sel.value).label.toLowerCase() + '.');
       });
-      ul.appendChild(el('li', {}, [el('span', { class: 'dot h' + h }), sel, el('small', { text: STAGE_NAMES[st] + ', ' + HEALTH_NAMES[h].toLowerCase() })]));
+      var thumb = el('canvas', { class: 'plant-thumb', width: '120', height: '132', 'aria-hidden': 'true' });
+      function drawThumb() { try { Pl.drawSample(thumb, s, Pl.resolve(s, S.choice[id]).id, 3, h, 0, false); } catch (e) { /* ignore */ } }
+      drawThumb(); setTimeout(drawThumb, 500); setTimeout(drawThumb, 1600);
+      sel.addEventListener('change', function () { setTimeout(function () { drawThumb(); }, 0); });
+      ul.appendChild(el('li', { class: 'plant-item' }, [thumb, el('div', { class: 'plant-body' }, [el('div', { class: 'plant-line' }, [el('span', { class: 'dot h' + h }), sel]), el('small', { text: STAGE_NAMES[st] + ', ' + HEALTH_NAMES[h].toLowerCase() })])]));
     });
     var th = CFG.plantUnlockPoints || [], nextIdx = ids.length;
     var u = $('unlock'); u.innerHTML = '';
