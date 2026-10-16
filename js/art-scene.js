@@ -522,6 +522,19 @@
     this.build();
   }
 
+
+  var PICS = {};
+  function pic(name) {
+    var e = PICS[name];
+    if (!e) { e = PICS[name] = { im: new Image(), ok: false }; e.im.onload = function () { e.ok = true; }; e.im.src = 'img/' + name + '.png'; }
+    return e.ok ? e.im : null;
+  }
+  function drawPic(g, name, cx, bottom, h, a) {
+    var im = pic(name); if (!im) return;
+    var w = h * im.naturalWidth / im.naturalHeight;
+    g.save(); if (a != null) g.globalAlpha = a; g.drawImage(im, Math.round(cx - w / 2), Math.round(bottom - h), Math.round(w), Math.round(h)); g.restore();
+  }
+
   Scene.prototype.build = function () {
     var self = this, i, r = rng(99);
     placePlants();
@@ -1031,6 +1044,9 @@
       g.restore();
     });
     tb.items.forEach(function (it) { var ix = Math.round(tb.cx + it.ox), iy = Math.round(tb.ty + it.oy); self.scaled(g, ix, iy, 1.25, function () { drawItem(it.k, ix, iy, t); }); });
+    if (tb.id === 'fr') drawPic(g, 'tea8', tb.cx + 2, tb.ty + 4, 22);
+    if (tb.id === 'fl') drawPic(g, 'tea6', tb.cx + 26, tb.ty + 3, 14);
+    if (tb.id === 'back') drawPic(g, 'tea1', tb.cx - 2, tb.ty + 12, 18);
     if (tb.id === 'fr') { this.drawOnePlant(g, t, Pl.SLOTS[7]); Pl.drawDecor('rubberBlue', tb.cx + 28, tb.ty - 2, 28, t, null, 'clay'); }
     if (tb.id === 'fl') Pl.drawDecor('rubber', tb.cx - 20, tb.ty - 3, 28, t, null, 'cream');
     if (tb.id === 'back') { Pl.drawDecor('rubberPlum', tb.cx - 17, tb.ty - 3, 24, t, null, 'navy'); Pl.drawDecor('roseSage', tb.cx + 18, tb.ty - 3, 26, t); }
@@ -1059,7 +1075,7 @@
     g.globalCompositeOperation = 'multiply';
     g.fillStyle = mix('#ffffff', sky.tint, clamp(sky.ta * 1.1, 0, 0.85));
     g.fillRect(0, 0, W, H);
-    var wxMul = { cloudy: '#dfe2e8', rain: '#c6cedb', snow: '#eaeef5' }[st.weather];
+    var wxMul = { cloudy: '#f6f6f7', rain: '#f0f2f6', snow: '#f8f9fd' }[st.weather];
     if (wxMul) { g.fillStyle = wxMul; g.fillRect(0, 0, W, H); }
     g.globalCompositeOperation = 'lighter';
     var flick = 0.85 + 0.15 * Math.sin(t * 9) * Math.sin(t * 5.3), base = 0.3 + 0.7 * night;
@@ -1110,6 +1126,7 @@
     this.drawPendants(g, t);
     this.drawFire(g, t);
     this.drawClockHands(g);
+    drawPic(g, 'glass', 99, 76, 52);
     this.drawLamps(g, t, false);
     this.drawWallPlants(g, t);
 
@@ -1134,6 +1151,7 @@
     ];
     list.push({ y: 432, fn: function () { Pl.drawDecor('rubberCocoa', 26, 432, 78, t, null, 'teal'); } });
     list.push({ y: TOWER.y, fn: function () { self.softShadow(g, TOWER.x, TOWER.y + 1, 22, 4, 0.22); catSprite(g, 'tower', 0, TOWER.x, TOWER.y, CAT_SC); catSprite(g, 'tan', Math.floor(t * 2.5) + 2, self.dogPos.x, self.dogPos.y, CAT_SC, true); } });
+    list.push({ y: CNT.y + 72, fn: function () { drawPic(g, 'globe', 536, 231, 28); } });
     TABLES.forEach(function (tb) { list.push({ y: tb.ty + 38, fn: function () { self.drawTableGroup(g, t, tb); } }); });
     list.sort(function (a, b) { return a.y - b.y; });
     list.forEach(function (it) { it.fn(); });

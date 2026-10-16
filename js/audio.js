@@ -334,7 +334,7 @@
     { id: 'lf2', file: 'sounds/lofi-homework.mp3', title: 'Homework' },
     { id: 'lf3', file: 'sounds/lofi-after.mp3', title: 'After' },
     { id: 'lf4', file: 'sounds/lofi-evening-mood.mp3', title: 'Evening mood' },
-    { id: 'lf5', file: 'sounds/lofi-420.mp3', title: 'Lo-fi 420' }
+    { id: 'lf5', file: 'sounds/lofi-420.mp3', title: 'Cozy corner' }
   ];
   var TBY = {}; TRACKS.forEach(function (t, i) { TBY[t.id] = i; });
 

@@ -545,3 +545,55 @@ canvas#scene, #scene { border-radius: 22px; border: 0; box-shadow: none; }
 .sound-group.fold[open] > summary::before { content: "- "; }
 .sound-group.fold > summary::-webkit-details-marker { display: none; }
 @media (max-width: 1020px) { .duo { display: contents; } #tasks-card { order: 4; } #garden-card { order: 5; } }
+
+/* ---------- calmer, clearer redesign (final overrides) ---------- */
+:root { --muted: #66524a; }
+:root[data-phase="night"], :root[data-theme="dark"] { --muted: #d6c4b0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --muted: #d6c4b0; } }
+body { font-size: 17px; line-height: 1.5; }
+.fine, .count, .sound-row small, .now-playing { font-size: 0.9rem; }
+.credit { font-size: 0.84rem; }
+.card { padding: 18px 20px; margin-bottom: 0; }
+.stage > .card, .side > .card { margin: 0; }
+.stage { display: flex; flex-direction: column; gap: 18px; }
+.side { display: flex; flex-direction: column; gap: 18px; }
+.layout { gap: 22px; }
+h2 { font-size: 1.25rem; margin-bottom: 12px; }
+/* plain headings instead of painted banners */
+#timer-card > h2, #tasks-card > h2 { border: 0; border-image: none; background: none; min-height: 0; padding: 0; margin: 0 0 12px; justify-content: flex-start; text-align: left; color: var(--ink); font-size: 1.25rem; }
+/* buttons: flat, solid, big enough to tap */
+#timer-card .btn, #tasks-card .btn, #timer-card .chip, #timer-card .seg button, #tasks-card .chip {
+  border: 1.5px solid var(--edge); border-image: none; border-radius: 14px; background: var(--panel2); color: var(--ink); min-height: 46px; padding: 0 14px; font-weight: 700; }
+#timer-card .btn.ghost, #tasks-card .btn.ghost, #timer-card .chip:not([aria-pressed="true"]), #timer-card .seg button[aria-pressed="false"] { border-image: none; background: var(--panel); }
+#timer-card .btn.primary, #tasks-card .btn.primary { border-image: none; background: var(--accent-strong); color: #fff; border-color: transparent; font-size: 1.1rem; }
+#timer-card .chip[aria-pressed="true"], #timer-card .seg button[aria-pressed="true"] { border-image: none; background: #44604a; color: #fff; border-color: transparent; }
+.btn:disabled, #timer-card .btn:disabled { border-image: none; opacity: 0.6; }
+#timer-card .seg { display: flex; gap: 8px; }
+#timer-card .seg button + button { border-left: 1.5px solid var(--edge); }
+.chip[aria-pressed="true"] { background: #44604a; color: #fff; border-color: transparent; }
+.chip { min-height: 44px; padding: 0 16px; font-size: 0.95rem; }
+/* tasks: simple rows, big targets */
+.top3 li, .top3 li.filled, #tasks-card .task { border: 1.5px solid var(--edge); border-image: none; border-radius: 14px; background: var(--panel); min-height: 52px; padding: 0 8px; }
+.top3 li.filled.done, #tasks-card .task.done { opacity: 0.75; }
+#tasks-card .add-form input, .top3 input { background: #fffaf0; min-height: 46px; font-size: 1rem; }
+/* jar card: small and quiet on the right */
+.side .jar-card .jar-wrap { display: flex; flex-direction: row; align-items: center; gap: 14px; text-align: left; }
+.side #jar { width: 84px; height: auto; flex: none; }
+.side .jar-card h2 { margin-bottom: 8px; }
+/* sounds and vibes */
+.sound-row { padding: 8px 0; }
+.sound-row .switch { transform: none; width: 44px; }
+.sound-row label { font-size: 0.95rem; }
+.sound-row input[type="range"] { height: 24px; }
+.track-pick { min-height: 44px; font-size: 0.95rem; }
+.sound-group h3 { font-size: 0.85rem; }
+.sound-group.fold > summary { min-height: 44px; display: flex; align-items: center; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+@media (min-width: 1021px) { .layout { grid-template-columns: minmax(0, 1fr) 400px; } .side { align-self: start; } }
+@media (max-width: 1020px) {
+  .stage, .side { display: contents; }
+  #timer-card { order: 3; } #tasks-card { order: 4; } .jar-card { order: 5; } #garden-card { order: 6; } .card.vibes { order: 7; } .sounds-card { order: 8; }
+  .layout { display: flex; flex-direction: column; gap: 16px; }
+  .layout > .scene-wrap, .layout .scene-wrap { order: 1; } .scene-hint { order: 2; }
+}
+.sound-group.fold > summary { gap: 8px; }
