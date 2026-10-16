@@ -7,7 +7,7 @@
   function midi(m) { return 440 * Math.pow(2, (m - 69) / 12); }
 
   // how loud each layer is at slider = 100%
-  var LAYER_GAIN = { waves: 0.8, fire: 0.9, chat: 0.55, plates: 0.8, keys: 0.7, rain: 0.75, music: 0.6, tracks: 0.9, jazz: 0.6, pads: 0.55, chimes: 0.7, birds: 0.6, storm: 0.8, brown: 0.7, crickets: 0.5, wind: 0.7, coffee: 0.8 };
+  var LAYER_GAIN = { waves: 0.8, fire: 1.0, chat: 0.55, plates: 0.8, keys: 0.7, rain: 0.75, music: 0.6, tracks: 0.9, jazz: 0.6, pads: 0.55, chimes: 0.7, birds: 0.6, storm: 0.8, brown: 0.7, crickets: 0.5, wind: 0.7, coffee: 0.8 };
 
   function makeNoise(ctx, seconds, type) {
     var n = Math.floor(ctx.sampleRate * seconds);
@@ -191,24 +191,43 @@
   };
 
   LAYERS.fire = function (E, out) {
-    var ctx = E.ctx, alive = true, timer = null;
+    var ctx = E.ctx, alive = true, timer = null, timer2 = null;
+    /* a very quiet, slowly breathing low bed so it is not a steady rumble */
     var rumble = E.loop('brown'), lp = ctx.createBiquadFilter(), g1 = ctx.createGain();
-    lp.type = 'lowpass'; lp.frequency.value = 340; g1.gain.value = 0.55;
+    lp.type = 'lowpass'; lp.frequency.value = 220; g1.gain.value = 0.1;
     rumble.connect(lp); lp.connect(g1); g1.connect(out);
-    var hiss = E.loop('white'), bp = ctx.createBiquadFilter(), g2 = ctx.createGain();
-    bp.type = 'bandpass'; bp.frequency.value = 3200; bp.Q.value = 0.4; g2.gain.value = 0.012;
-    hiss.connect(bp); bp.connect(g2); g2.connect(out);
+    var lfo = ctx.createOscillator(), lg = ctx.createGain();
+    lfo.frequency.value = 0.23; lg.gain.value = 0.05; lfo.connect(lg); lg.connect(g1.gain); lfo.start();
+    /* airy flutter of the flames in the mids and highs */
+    var fl = E.loop('pink'), bp = ctx.createBiquadFilter(), g2 = ctx.createGain();
+    bp.type = 'bandpass'; bp.frequency.value = 1800; bp.Q.value = 0.7; g2.gain.value = 0.05;
+    fl.connect(bp); bp.connect(g2); g2.connect(out);
+    var lfo2 = ctx.createOscillator(), lg2 = ctx.createGain();
+    lfo2.frequency.value = 0.9; lg2.gain.value = 0.035; lfo2.connect(lg2); lg2.connect(g2.gain); lfo2.start();
+    var hiss = E.loop('white'), hp = ctx.createBiquadFilter(), g3 = ctx.createGain();
+    hp.type = 'highpass'; hp.frequency.value = 5000; g3.gain.value = 0.012;
+    hiss.connect(hp); hp.connect(g3); g3.connect(out);
+    /* crackles and pops */
     function crackle() {
       if (!alive) return;
-      var big = Math.random() < 0.08;
+      var r = Math.random(), big = r < 0.1, med = !big && r < 0.4;
       E.burst(out, {
-        freq: big ? rand(500, 1400) : rand(1200, 5500), q: rand(0.8, 3), amp: big ? rand(0.4, 0.7) : rand(0.05, 0.32),
-        dur: big ? rand(0.03, 0.07) : rand(0.006, 0.03), type: 'bandpass', pan: rand(-0.4, 0.4)
+        freq: big ? rand(400, 1100) : med ? rand(1500, 3200) : rand(2800, 7000), q: rand(1, 4),
+        amp: big ? rand(0.5, 0.85) : med ? rand(0.18, 0.4) : rand(0.08, 0.25),
+        dur: big ? rand(0.025, 0.06) : rand(0.004, 0.022), type: 'bandpass', pan: rand(-0.5, 0.5)
       });
-      timer = setTimeout(crackle, Math.random() < 0.2 ? rand(300, 1100) : rand(30, 260));
+      if (Math.random() < 0.25) setTimeout(function () { if (alive) E.burst(out, { freq: rand(2500, 6500), q: rand(1, 3), amp: rand(0.06, 0.2), dur: rand(0.004, 0.012), type: 'bandpass', pan: rand(-0.5, 0.5) }); }, rand(15, 60));
+      timer = setTimeout(crackle, Math.random() < 0.15 ? rand(350, 1300) : rand(25, 200));
     }
     crackle();
-    return function () { alive = false; clearTimeout(timer); try { rumble.stop(); hiss.stop(); } catch (e) { /* ignore */ } };
+    /* now and then a soft settle of the logs */
+    function settle() {
+      if (!alive) return;
+      E.burst(out, { freq: rand(250, 520), q: 1.2, amp: rand(0.25, 0.45), dur: rand(0.08, 0.16), type: 'bandpass', pan: rand(-0.3, 0.3) });
+      timer2 = setTimeout(settle, rand(7000, 16000));
+    }
+    timer2 = setTimeout(settle, rand(3000, 8000));
+    return function () { alive = false; clearTimeout(timer); clearTimeout(timer2); try { rumble.stop(); fl.stop(); hiss.stop(); lfo.stop(); lfo2.stop(); } catch (e) { /* ignore */ } };
   };
 
   LAYERS.rain = function (E, out) {
