@@ -198,19 +198,19 @@
     var t = 0, mood = 1, moodT = 0, i, k;
     while (t < secs - 0.05) {
       if (t > moodT) { mood = 0.3 + r() * 2.2; moodT = t + 0.6 + r() * 2.2; }
-      t += -Math.log(1 - r()) / (9 * mood);
+      t += -Math.log(1 - r()) / (3.2 * mood);
       var at = Math.floor(t * sr), kind = r(), len, amp, prev = 0, lp = 0;
-      if (kind < 0.6) {            /* tick: tiny bright click */
-        len = Math.floor(sr * (0.0008 + r() * 0.0035)); amp = 0.25 + r() * 0.5;
+      if (kind < 0.25) {           /* tick: small soft click */
+        len = Math.floor(sr * (0.002 + r() * 0.004)); amp = 0.15 + r() * 0.3;
         for (i = 0; i < len && at + i < n; i++) { var x = (r() * 2 - 1); d[at + i] += (x - prev) * amp * Math.exp(-i / (len * 0.35)); prev = x; }
-      } else if (kind < 0.9) {     /* pop: short, rounder burst */
-        len = Math.floor(sr * (0.006 + r() * 0.016)); amp = 0.5 + r() * 0.5; var cut = 0.25 + r() * 0.5;
+      } else if (kind < 0.93) {    /* pop: short, round burst */
+        len = Math.floor(sr * (0.006 + r() * 0.016)); amp = 0.5 + r() * 0.5; var cut = 0.08 + r() * 0.2;
         for (i = 0; i < len && at + i < n; i++) { lp += ((r() * 2 - 1) - lp) * cut; d[at + i] += lp * amp * 1.6 * Math.exp(-i / (len * 0.3)); }
       } else {                     /* snap: a pop with a low knock under it */
         len = Math.floor(sr * (0.018 + r() * 0.03)); amp = 0.8 + r() * 0.3; var f = 120 + r() * 160;
         for (i = 0; i < len && at + i < n; i++) { var e = Math.exp(-i / (len * 0.28)); lp += ((r() * 2 - 1) - lp) * 0.6; d[at + i] += (lp * 0.9 + Math.sin(6.2832 * f * i / sr) * 0.7) * amp * e; }
       }
-      if (r() < 0.3) { t += 0.004 + r() * 0.03; }   /* crackles tend to come in little bunches */
+      if (r() < 0.2) { t += 0.01 + r() * 0.05; }   /* crackles tend to come in little bunches */
     }
     var peak = 0.0001; for (k = 0; k < n; k++) if (Math.abs(d[k]) > peak) peak = Math.abs(d[k]);
     for (k = 0; k < n; k++) d[k] = d[k] / peak * 0.95;
@@ -218,21 +218,22 @@
   }
   LAYERS.fire = function (E, out) {
     var ctx = E.ctx, srcs = [], nodes = [];
+    var tone = ctx.createBiquadFilter(); tone.type = 'lowpass'; tone.frequency.value = 3200; tone.Q.value = 0.5;
+    var low = ctx.createBiquadFilter(); low.type = 'highpass'; low.frequency.value = 120;
+    tone.connect(low); low.connect(out);
     function addCrackle(seed, pan, gain, rate) {
       var s = ctx.createBufferSource(); s.buffer = makeCrackleBuf(ctx, 7 + seed % 3, seed * 7919); s.loop = true; s.playbackRate.value = rate;
       var g = ctx.createGain(); g.gain.value = gain; var pn = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
-      s.connect(g); if (pn) { pn.pan.value = pan; g.connect(pn); pn.connect(out); } else g.connect(out);
+      s.connect(g); if (pn) { pn.pan.value = pan; g.connect(pn); pn.connect(tone); } else g.connect(tone);
       s.start(0, Math.random() * 5); srcs.push(s); nodes.push(g);
     }
-    addCrackle(3, -0.45, 1.6, 1);
-    addCrackle(5, 0.45, 1.4, 0.93);
-    addCrackle(8, 0, 0.8, 1.12);
-    /* just a trace of warmth and flame air underneath, nothing you would call a rumble */
-    var rumble = E.loop('brown'), lp = ctx.createBiquadFilter(), g1 = ctx.createGain();
-    lp.type = 'lowpass'; lp.frequency.value = 160; g1.gain.value = 0.035; rumble.connect(lp); lp.connect(g1); g1.connect(out);
+    addCrackle(3, -0.4, 0.55, 1);
+    addCrackle(5, 0.4, 0.45, 0.93);
+    /* a soft, warm hush underneath, kept low so it never reads as wind */
     var air = E.loop('pink'), bp = ctx.createBiquadFilter(), g2 = ctx.createGain();
-    bp.type = 'bandpass'; bp.frequency.value = 2400; bp.Q.value = 0.6; g2.gain.value = 0.012; air.connect(bp); bp.connect(g2); g2.connect(out);
-    return function () { try { srcs.forEach(function (s) { s.stop(); }); rumble.stop(); air.stop(); } catch (e) { /* ignore */ } };
+    bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 0.5; g2.gain.value = 0.03; air.connect(bp); bp.connect(g2); g2.connect(out);
+    var rumble = air;
+    return function () { try { srcs.forEach(function (s) { s.stop(); }); air.stop(); } catch (e) { /* ignore */ } };
   };
 
   LAYERS.rain = function (E, out) {
