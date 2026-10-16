@@ -456,7 +456,9 @@
   function toggleTask(t) {
     t.done = !t.done;
     if (t.done && !t.rewarded) {
-      t.rewarded = true; S.tasksDone += 1; touchStreak(); addPoints(1);
+      t.rewarded = true; S.tasksDone += 1; touchStreak();
+      var dk = dayKey(); if (!S.taskDay || S.taskDay.day !== dk) S.taskDay = { day: dk, n: 0 };
+      if (S.taskDay.n < 6) { S.taskDay.n += 1; addPoints(1); } else toast('Done! Today\'s star limit is reached, so this one is just for you.');
       sfx('chime', 'task');
       carePlant();
       var left = S.tasks.filter(function (x) { return !x.done; }).length;
@@ -669,7 +671,7 @@
     var u = $('unlock'); u.innerHTML = '';
     if (nextIdx < Pl.UNLOCK_ORDER.length) {
       var need = th[nextIdx], prev = th[nextIdx - 1] || 0, next = 'A new plant';
-      u.appendChild(el('div', { text: next + ' moves in at ' + need + ' points (' + Math.max(0, need - S.points) + ' to go). Finished tasks count 1, focus sessions count 2.' }));
+      u.appendChild(el('div', { text: next + ' moves in at ' + need + ' points (' + Math.max(0, need - S.points) + ' to go). Finished tasks count 1 (up to 6 a day), focus sessions count 2.' }));
       var bar = el('div', { class: 'bar' }, [el('span', { style: 'width:' + Math.round(clamp01((S.points - prev) / Math.max(1, need - prev)) * 100) + '%' })]);
       u.appendChild(bar);
     } else u.appendChild(el('div', { text: 'The whole garden has moved in. Lovely.' }));
@@ -760,7 +762,7 @@
   function renderGreenhouse() {
     var ids = unlockedIds(), th = CFG.plantUnlockPoints || [];
     var kinds = Pl.VARIETIES.filter(function (v) { return S.points >= Pl.unlockAt(v.id); }).length;
-    $('house-lead').textContent = ids.length + ' of ' + Pl.SLOTS.length + ' plants have moved in, and you have found ' + kinds + ' of ' + Pl.VARIETIES.length + ' kinds. Finished tasks count 1 point, focus sessions count 2.';
+    $('house-lead').textContent = ids.length + ' of ' + Pl.SLOTS.length + ' plants have moved in, and you have found ' + kinds + ' of ' + Pl.VARIETIES.length + ' kinds. Finished tasks count 1 point (up to 6 a day), focus sessions count 2.';
     var grid = $('house-grid'); grid.innerHTML = '';
     var draws = [];
     Pl.UNLOCK_ORDER.forEach(function (id, i) {

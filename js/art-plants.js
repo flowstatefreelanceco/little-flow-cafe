@@ -48,7 +48,7 @@
     { id: 'rubberCocoa', label: 'Variegated rubber plant, cocoa pot', rel: 1 }
   ];
   /* total points (tasks 1, focus sessions 2) needed to unlock each plant. Missing means open from the start. */
-  var UNLOCK_AT = { rubberBlue: 4, astilbeHoney: 9, roseTeal: 15, trailBerry: 22, carnGold: 30, rubberPlum: 40, roseSage: 52, rubberCocoa: 64 };
+  var UNLOCK_AT = { rubberBlue: 8, astilbeHoney: 18, roseTeal: 30, trailBerry: 45, carnGold: 62, rubberPlum: 82, roseSage: 105, rubberCocoa: 130 };
   function unlockAt(id) { return UNLOCK_AT[id] || 0; }
   var VBY = {};
   VARIETIES.forEach(function (v) { VBY[v.id] = v; });
