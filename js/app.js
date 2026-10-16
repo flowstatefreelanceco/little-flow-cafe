@@ -22,7 +22,7 @@
     { id: 'birds', label: 'Morning birds', hint: 'Garden songs', group: 'ambience' },
     { id: 'storm', label: 'Thunderstorm', hint: 'Rain and far off thunder', group: 'ambience' },
     { id: 'wind', label: 'Gentle wind', hint: 'Soft gusts outside', group: 'ambience' },
-    { id: 'crickets', label: 'Night crickets', hint: 'A warm evening', group: 'ambience' },
+    { id: 'crickets', label: 'Night time', hint: 'A quiet night outside', group: 'ambience' },
     { id: 'brown', label: 'Brown noise', hint: 'Deep, steady focus', group: 'ambience' },
     { id: 'coffee', label: 'Espresso machine', hint: 'Steam and a gurgle', group: 'ambience' }
   ];

@@ -618,6 +618,39 @@
     return function () { alive = false; clearTimeout(timer); };
   };
 
+  /* ---------- real recordings: used when they load, the built in versions are the fallback ---------- */
+  Engine.prototype.sample = function (file) {
+    var E = this; E._smp = E._smp || {};
+    if (!E._smp[file]) {
+      E._smp[file] = new Promise(function (res, rej) {
+        var x = new XMLHttpRequest(); x.open('GET', file); x.responseType = 'arraybuffer';
+        x.onload = function () { if (x.status >= 400) { rej(new Error('missing')); return; } try { E.ctx.decodeAudioData(x.response, res, rej); } catch (e) { rej(e); } };
+        x.onerror = function () { rej(new Error('load')); }; x.send();
+      });
+      E._smp[file].catch(function () { delete E._smp[file]; });
+    }
+    return E._smp[file];
+  };
+  function sampled(name, files, gains) {
+    var synth = LAYERS[name];
+    LAYERS[name] = function (E, out) {
+      var alive = true, srcs = [], fb = null;
+      Promise.all(files.map(function (f) { return E.sample(f); })).then(function (bufs) {
+        if (!alive) return;
+        bufs.forEach(function (b, i) {
+          var s = E.ctx.createBufferSource(); s.buffer = b; s.loop = true;
+          var g = E.ctx.createGain(); g.gain.value = gains[i]; s.connect(g); g.connect(out);
+          s.start(0, Math.random() * b.duration * 0.9); srcs.push(s);
+        });
+      }).catch(function () { if (alive && synth) fb = synth(E, out); });
+      return function () { alive = false; srcs.forEach(function (s) { try { s.stop(); } catch (e) { /* ignore */ } }); if (fb) fb(); };
+    };
+  }
+  sampled('fire', ['sounds/fire-a.mp3', 'sounds/fire-b.mp3'], [1, 0.55]);
+  sampled('rain', ['sounds/rain-amb.mp3'], [1]);
+  sampled('wind', ['sounds/wind-amb.mp3'], [1]);
+  sampled('crickets', ['sounds/night-amb.mp3'], [1]);
+
   /* ---------- gentle sound effects ---------- */
   Engine.prototype._sfx = function (fn) {
     if (!this.ctx) { if (!this.unlock()) return; }
@@ -663,9 +696,13 @@
   Engine.prototype.flip = function () {
     var E = this;
     this._sfx(function (ctx, dest) {
-      var now = ctx.currentTime;
-      E.burst(dest, { freq: 3000, q: 0.6, amp: 0.1, dur: 0.12, t: now, type: 'highpass' });
-      E.tone(dest, { freq: 880, amp: 0.06, dur: 0.25, t: now + 0.05 });
+      E.sample('sounds/card-flip.mp3').then(function (b) {
+        var s = ctx.createBufferSource(); s.buffer = b; var g = ctx.createGain(); g.gain.value = 0.9; s.connect(g); g.connect(dest); s.start();
+      }).catch(function () {
+        var now = ctx.currentTime;
+        E.burst(dest, { freq: 3000, q: 0.6, amp: 0.1, dur: 0.12, t: now, type: 'highpass' });
+        E.tone(dest, { freq: 880, amp: 0.06, dur: 0.25, t: now + 0.05 });
+      });
     });
   };
   Engine.prototype.pop = function () {
