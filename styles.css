@@ -597,3 +597,26 @@ h2 { font-size: 1.25rem; margin-bottom: 12px; }
   .layout > .scene-wrap, .layout .scene-wrap { order: 1; } .scene-hint { order: 2; }
 }
 .sound-group.fold > summary { gap: 8px; }
+
+/* ---------- greenhouse and card menu dressing ---------- */
+.modal-head.fancy { position: relative; align-items: center; gap: 14px; padding: 14px 16px; margin: -18px -20px 14px; border-radius: 18px 18px 0 0;
+  background: linear-gradient(rgba(255, 244, 224, 0.74), rgba(255, 244, 224, 0.74)), url("img/wood-wall.jpg") center / 260px; border-bottom: 1.5px solid var(--edge); }
+:root[data-phase="night"] .modal-head.fancy, :root[data-theme="dark"] .modal-head.fancy { background: linear-gradient(rgba(59, 48, 51, 0.82), rgba(59, 48, 51, 0.82)), url("img/wood-wall.jpg") center / 260px; }
+.modal-head.fancy .head-text { flex: 1; min-width: 0; }
+.modal-head.fancy h2 { font-size: 1.4rem; }
+.head-sub { margin: 2px 0 0; color: var(--muted); font-size: 0.95rem; font-weight: 600; }
+.modal-head .deco-l { height: 64px; width: auto; flex: none; }
+.modal-head .deco-r { height: 64px; width: auto; flex: none; }
+.house-sub { align-items: center; }
+.house-sub .mini { height: 30px; width: auto; }
+.house-modal { position: relative; }
+.corner-flowers { display: block; height: 120px; width: auto; margin: 10px 0 0 auto; opacity: 0.9; }
+.house-card { box-shadow: 0 3px 0 rgba(120, 78, 44, 0.18); }
+.menu-modal { max-width: 720px; background: #fbf1dd; }
+.menu-head h2 { font-size: 1.5rem; }
+.face.back { background: #fff6e2; background-image: none; padding: 8px; }
+.face.back .treat { width: 100%; height: 100%; object-fit: contain; border-radius: 10px; }
+.pcard:not(.flipped):hover .inner, .pcard:focus-visible .inner { transform: translateY(-6px); }
+.pcard { aspect-ratio: 3 / 4; }
+.face.front { background: #fffaf0; font-size: 1.02rem; line-height: 1.4; }
+@media (max-width: 520px) { .modal-head .deco-l, .modal-head .deco-r { height: 44px; } .modal-head.fancy { flex-wrap: wrap; } .pick-grid { grid-template-columns: 1fr; } .pcard { aspect-ratio: 16 / 9; max-width: 340px; margin: 0 auto; width: 100%; } }

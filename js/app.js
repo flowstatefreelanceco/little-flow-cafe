@@ -923,6 +923,7 @@
     for (var i = out.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)); var t = out[i]; out[i] = out[j]; out[j] = t; }
     return out;
   }
+  function dayNum() { return Math.floor(Date.now() / 86400000); }
   function renderCards() {
     todaysCards = pickToday();
     var grid = $('pick-grid'); grid.innerHTML = '';
@@ -931,7 +932,7 @@
       var c = CARDS[ci];
       var btn = el('button', { class: 'pcard', type: 'button', 'aria-label': 'Card ' + (pos + 1) + ', face down' }, [
         el('div', { class: 'inner' }, [
-          el('div', { class: 'face back' }, [el('span', { class: 'star', text: '✦' })]),
+          el('div', { class: 'face back' }, [el('img', { class: 'treat', src: 'img/treat' + (((dayNum() + pos * 3) % 9) + 1) + '.webp', alt: '' })]),
           el('div', { class: 'face front' }, [el('span', { class: 'kind', text: c[1] === 'sassy' ? 'A little sass' : 'A little sweet' }), el('span', { text: c[0] })])
         ])
       ]);

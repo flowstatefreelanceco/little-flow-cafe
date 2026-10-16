@@ -345,22 +345,30 @@
     g.restore();
   }
 
+
+  var WALL = { im: null, ok: false, cbs: [] };
+  (function () { try { var im = new Image(); im.onload = function () { WALL.ok = true; WALL.cbs.forEach(function (f) { f(); }); WALL.cbs = []; }; im.src = 'img/wood-wall.jpg'; WALL.im = im; } catch (e) { /* ignore */ } })();
+
   function buildBackdrop() {
     var cv = C.makeCanvas(W, H), g = cv.getContext('2d'), r, i, x, y;
     C.setCtx(g);
     /* wall */
-    box(g, 0, 0, W, FLOORY, '#cfa87c');
-    var py0, pk = 0;
-    for (py0 = 0; py0 < FLOORY; py0 += 13, pk++) {
-      box(g, 0, py0, W, 13, pk % 2 ? '#c99f72' : '#d3ac80');
-      g.fillStyle = 'rgba(96,58,32,0.28)'; g.fillRect(0, py0 + 12, W, 1);
-      g.fillStyle = 'rgba(255,236,200,0.16)'; g.fillRect(0, py0, W, 1);
-      g.strokeStyle = 'rgba(110,68,38,0.16)'; g.lineWidth = 0.7;
-      for (var gk = 0; gk < 7; gk++) {
-        var gx = ((pk * 97 + gk * 83) % W), gl = 30 + ((pk * 31 + gk * 17) % 60), gy = py0 + 3 + ((gk * 5 + pk * 3) % 8);
-        g.beginPath(); g.moveTo(gx, gy); g.quadraticCurveTo(gx + gl * 0.5, gy + (gk % 2 ? 1.4 : -1.4), gx + gl, gy); g.stroke();
+    box(g, 0, 0, W, FLOORY, '#d8b48a');
+    if (WALL.ok) {
+      /* wood grain wallpaper, softened so the shelves and plants still read */
+      var ts = 288, tx, ty;
+      g.save(); g.beginPath(); g.rect(0, 0, W, FLOORY); g.clip(); g.globalAlpha = 0.62;
+      for (tx = 0; tx < W; tx += ts) for (ty = 0; ty < FLOORY; ty += ts) g.drawImage(WALL.im, tx, ty, ts, ts);
+      g.restore();
+      g.fillStyle = 'rgba(255,240,215,0.2)'; g.fillRect(0, 0, W, FLOORY);
+      g.fillStyle = 'rgba(96,58,32,0.10)';
+      for (var vx = 36; vx < W; vx += 48) g.fillRect(vx, 0, 1, FLOORY);
+    } else {
+      var py0, pk = 0;
+      for (py0 = 0; py0 < FLOORY; py0 += 13, pk++) {
+        box(g, 0, py0, W, 13, pk % 2 ? '#c99f72' : '#d3ac80');
+        g.fillStyle = 'rgba(96,58,32,0.28)'; g.fillRect(0, py0 + 12, W, 1);
       }
-      var jx = (pk * 131 + 40) % (W - 20); g.fillStyle = 'rgba(96,58,32,0.22)'; g.fillRect(jx, py0, 1, 13);
     }
     g.save(); archPath(g, GLASS.x - 26, GLASS.y - 26, GLASS.w + 52, 190); g.fillStyle = 'rgba(255,226,170,0.16)'; g.fill(); g.restore();
     box(g, 0, 0, W, 10, PAL.cream); box(g, 0, 10, W, 3, shade(PAL.wall, -0.12));
@@ -539,6 +547,7 @@
     var self = this, i, r = rng(99);
     placePlants();
     this.bg = buildBackdrop();
+    if (!WALL.ok) WALL.cbs.push(function () { self.bg = buildBackdrop(); });
     this.winFrame = buildWinFrame();
     this.counterSpr = buildCounter();
     this.tableSpr = {};
