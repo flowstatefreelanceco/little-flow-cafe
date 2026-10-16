@@ -445,7 +445,7 @@ canvas#scene, #scene { border-radius: 22px; border: 0; box-shadow: none; }
 .stage { position: static; }
 #timer-card .seg button { white-space: nowrap; font-size: 0.86rem; }
 @media (max-width: 1020px) {
-  .stage, .side, .layout.big .side { display: contents; }
+  .stage, .side, .layout.big .side, .duo { display: contents; }
   .scene-wrap { order: 1; }
   .scene-hint { order: 2; margin: 0 2px 4px; }
   #timer-card { order: 3; }
@@ -520,3 +520,28 @@ canvas#scene, #scene { border-radius: 22px; border: 0; box-shadow: none; }
 .guide-nav { display: flex; justify-content: space-between; gap: 10px; }
 .guide-nav .btn { min-width: 96px; }
 .guide-nav #guide-next { margin-left: auto; }
+
+/* tasks beside the star jar, right under Cafe vibes */
+.duo { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 18px; align-items: start; }
+.duo > .card { margin: 0; }
+.duo .jar-card .jar-wrap { flex-direction: column; align-items: center; text-align: center; }
+.duo #jar { width: 120px; }
+@media (min-width: 1021px) { .layout.big .duo { max-width: 1240px; margin-inline: auto; width: 100%; } }
+/* sounds: grouped and calm */
+#sound-rows { display: block; }
+.sound-group { margin-top: 8px; }
+.sound-group h3 { font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin: 6px 0 2px; }
+.sound-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 18px; }
+.sound-group.player { background: rgba(255, 250, 240, 0.7); border-radius: 14px; padding: 6px 12px 10px; }
+.sound-row.main label { font-size: 0.95rem; }
+.sound-row.main small { display: block; }
+.now-playing { margin: 2px 0 6px; font-size: 0.82rem; color: var(--muted); font-weight: 600; }
+.track-ctl { display: flex; gap: 8px; align-items: center; }
+.track-pick { flex: 1; min-width: 0; min-height: 38px; border-radius: 12px; border: 1px solid var(--edge); background: #fffaf0; padding: 0 10px; font: inherit; font-size: 0.85rem; }
+.credit { margin: 6px 0 0; font-size: 0.74rem; }
+@media (max-width: 520px) { .sound-grid { grid-template-columns: 1fr; } .duo { grid-template-columns: 1fr; } }
+.sound-group.fold > summary { cursor: pointer; font-weight: 800; font-size: 0.9rem; padding: 8px 2px; list-style: none; }
+.sound-group.fold > summary::before { content: "+ "; color: var(--muted); }
+.sound-group.fold[open] > summary::before { content: "- "; }
+.sound-group.fold > summary::-webkit-details-marker { display: none; }
+@media (max-width: 1020px) { .duo { display: contents; } #tasks-card { order: 4; } #garden-card { order: 5; } }

@@ -7,7 +7,7 @@
   function midi(m) { return 440 * Math.pow(2, (m - 69) / 12); }
 
   // how loud each layer is at slider = 100%
-  var LAYER_GAIN = { waves: 0.8, fire: 0.9, chat: 0.55, plates: 0.8, keys: 0.7, rain: 0.75, music: 0.6, jazz: 0.6, pads: 0.55, chimes: 0.7, birds: 0.6, storm: 0.8, brown: 0.7, crickets: 0.5, wind: 0.7, coffee: 0.8 };
+  var LAYER_GAIN = { waves: 0.8, fire: 0.9, chat: 0.55, plates: 0.8, keys: 0.7, rain: 0.75, music: 0.6, tracks: 0.9, jazz: 0.6, pads: 0.55, chimes: 0.7, birds: 0.6, storm: 0.8, brown: 0.7, crickets: 0.5, wind: 0.7, coffee: 0.8 };
 
   function makeNoise(ctx, seconds, type) {
     var n = Math.floor(ctx.sampleRate * seconds);
@@ -318,6 +318,67 @@
     }
     timer = setTimeout(typing, 400);
     return function () { alive = false; clearTimeout(timer); };
+  };
+
+  /* real lo-fi tracks (mp3 files in the sounds folder). Music by Rusted Music Studio, MIDI Fusion and Fabien Castex. */
+  var TRACKS = [
+    { id: 'cb1', file: 'sounds/cafe-beats-1.mp3', title: 'Cafe beats 1' },
+    { id: 'cb2', file: 'sounds/cafe-beats-2.mp3', title: 'Cafe beats 2' },
+    { id: 'cb3', file: 'sounds/cafe-beats-3.mp3', title: 'Cafe beats 3' },
+    { id: 'cb4', file: 'sounds/cafe-beats-4.mp3', title: 'Cafe beats 4' },
+    { id: 'cb5', file: 'sounds/cafe-beats-5.mp3', title: 'Cafe beats 5' },
+    { id: 'cb6', file: 'sounds/cafe-beats-6.mp3', title: 'Cafe beats 6' },
+    { id: 'cb7', file: 'sounds/cafe-beats-7.mp3', title: 'Cafe beats 7' },
+    { id: 'cb8', file: 'sounds/cafe-beats-8.mp3', title: 'Cafe beats 8' },
+    { id: 'lf1', file: 'sounds/lofi-morning-walk.mp3', title: 'Morning walk' },
+    { id: 'lf2', file: 'sounds/lofi-homework.mp3', title: 'Homework' },
+    { id: 'lf3', file: 'sounds/lofi-after.mp3', title: 'After' },
+    { id: 'lf4', file: 'sounds/lofi-evening-mood.mp3', title: 'Evening mood' },
+    { id: 'lf5', file: 'sounds/lofi-420.mp3', title: 'Lo-fi 420' }
+  ];
+  var TBY = {}; TRACKS.forEach(function (t, i) { TBY[t.id] = i; });
+
+  LAYERS.tracks = function (E, out) {
+    var ctx = E.ctx, alive = true, el = document.createElement('audio'), src = null, queue = [], errs = 0;
+    el.preload = 'auto';
+    try { src = ctx.createMediaElementSource(el); src.connect(out); } catch (e) { return function () {}; }
+    function shuffle() {
+      queue = TRACKS.map(function (t, i) { return i; });
+      for (var i = queue.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = queue[i]; queue[i] = queue[j]; queue[j] = x; }
+      if (E.lastTrack !== undefined && queue[0] === E.lastTrack) queue.push(queue.shift());
+    }
+    function play(i) {
+      var t = TRACKS[i]; if (!t || !alive) return;
+      E.lastTrack = i; el.loop = E.trackPick !== 'all';
+      el.src = t.file;
+      var p = el.play(); if (p && p.catch) p.catch(function () { /* the browser may block until a tap */ });
+      if (E.onTrack) E.onTrack(t.title, i);
+    }
+    function next() {
+      if (!alive) return;
+      if (E.trackPick !== 'all' && TBY[E.trackPick] !== undefined) return play(TBY[E.trackPick]);
+      if (!queue.length) shuffle();
+      play(queue.shift());
+    }
+    el.addEventListener('ended', next);
+    el.addEventListener('error', function () { if (++errs < 4) setTimeout(next, 800); });
+    E._nextTrack = next;
+    next();
+    return function () {
+      alive = false; E._nextTrack = null;
+      try { el.pause(); el.removeAttribute('src'); el.load(); src.disconnect(); } catch (e) { /* ignore */ }
+    };
+  };
+  Engine.prototype.trackPick = 'all';
+  Engine.prototype.TRACKS = TRACKS;
+  Engine.prototype.pickTrack = function (id) {
+    this.trackPick = id || 'all';
+    var L = this.layers.tracks;
+    if (L && L.running && this._nextTrack) this._nextTrack();
+  };
+  Engine.prototype.skipTrack = function () {
+    this.trackPick = 'all';
+    if (this._nextTrack) this._nextTrack();
   };
 
   LAYERS.music = function (E, out) {

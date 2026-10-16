@@ -118,6 +118,31 @@
         <label class="check-line"><input type="checkbox" id="calm"> Calm motion (slower, fewer moving things)</label>
       </section>
 
+      <div class="duo">
+      <section class="card jar-card" aria-labelledby="jar-h">
+        <h2 id="jar-h">Your star jar</h2>
+        <div class="jar-wrap">
+          <canvas id="jar" width="220" height="240" role="img" aria-label="A glass jar filling up with colorful stars"></canvas>
+          <p class="jar-text" id="jar-text"></p>
+        </div>
+      </section>
+
+      <section class="card" id="tasks-card" aria-labelledby="tasks-h">
+        <h2 id="tasks-h">Today's top 3</h2>
+        <ol class="top3" id="top3"></ol>
+        <p class="fine how">Tap the circle to check a task off. That earns a star and helps your plants grow. Tap the x to delete one.</p>
+        <h3>Everything else <span class="count" id="task-count"></span></h3>
+        <ul class="tasklist" id="tasklist"></ul>
+        <form id="task-form" class="add-form" autocomplete="off">
+          <label class="sr" for="task-input">Add a task</label>
+          <input id="task-input" type="text" maxlength="120" placeholder="Add a task">
+          <button class="btn" type="submit">Add</button>
+        </form>
+        <button id="clear-done" class="link" type="button" hidden>Clear finished tasks</button>
+        <p class="fine" id="save-note">Your list is saved on this device. Log in to keep it everywhere.</p>
+      </section>
+      </div>
+
       <section class="card sounds-card" aria-labelledby="sounds-h">
         <h2 id="sounds-h">Sounds</h2>
         <div id="sound-rows"></div>
@@ -126,6 +151,7 @@
           <input id="master-vol" type="range" min="0" max="100" value="80">
         </div>
         <label class="check-line"><input type="checkbox" id="sfx"> Soft sound effects (chimes, watering, sparkles)</label>
+        <p class="fine credit">Lo-fi tracks by Rusted Music Studio, MIDI Fusion and Fabien Castex.</p>
       </section>
 
     </section>
@@ -167,29 +193,6 @@
                 <div class="vac" id="vac"></div>
         <div class="stats" id="stats"></div>
         <p class="today-card" id="today-card" hidden></p>
-      </section>
-
-      <section class="card jar-card" aria-labelledby="jar-h">
-        <h2 id="jar-h">Your star jar</h2>
-        <div class="jar-wrap">
-          <canvas id="jar" width="220" height="240" role="img" aria-label="A glass jar filling up with colorful stars"></canvas>
-          <p class="jar-text" id="jar-text"></p>
-        </div>
-      </section>
-
-      <section class="card" id="tasks-card" aria-labelledby="tasks-h">
-        <h2 id="tasks-h">Today's top 3</h2>
-        <ol class="top3" id="top3"></ol>
-        <p class="fine how">Tap the circle to check a task off. That earns a star and helps your plants grow. Tap the x to delete one.</p>
-        <h3>Everything else <span class="count" id="task-count"></span></h3>
-        <ul class="tasklist" id="tasklist"></ul>
-        <form id="task-form" class="add-form" autocomplete="off">
-          <label class="sr" for="task-input">Add a task</label>
-          <input id="task-input" type="text" maxlength="120" placeholder="Add a task">
-          <button class="btn" type="submit">Add</button>
-        </form>
-        <button id="clear-done" class="link" type="button" hidden>Clear finished tasks</button>
-        <p class="fine" id="save-note">Your list is saved on this device. Log in to keep it everywhere.</p>
       </section>
 
     </aside>

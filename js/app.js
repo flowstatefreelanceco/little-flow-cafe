@@ -8,22 +8,23 @@
   var STAGE_NAMES = ['Seedling', 'Sprout', 'Growing', 'Thriving'];
   var HEALTH_NAMES = ['Happy', 'Thirsty', 'Sleeping'];
   var SOUNDS = [
-    { id: 'waves', label: 'Ocean waves', hint: 'Slow and soft' },
-    { id: 'fire', label: 'Fireplace', hint: 'Soft crackle' },
-    { id: 'chat', label: 'Cafe chatter', hint: 'Low, friendly murmur' },
-    { id: 'plates', label: 'Plates clinking', hint: 'Now and then' },
-    { id: 'keys', label: 'Keyboard clicks', hint: 'Other people typing' },
-    { id: 'rain', label: 'Rain', hint: 'On the window' },
-    { id: 'music', label: 'Lo-fi music', hint: 'Slow and warm' },
-    { id: 'jazz', label: 'Late night jazz', hint: 'Soft piano and brushes' },
-    { id: 'pads', label: 'Dreamy pads', hint: 'Slow, warm chords' },
-    { id: 'chimes', label: 'Wind chimes', hint: 'A breeze on the porch' },
-    { id: 'birds', label: 'Morning birds', hint: 'Garden songs' },
-    { id: 'storm', label: 'Thunderstorm', hint: 'Rain and far off thunder' },
-    { id: 'wind', label: 'Gentle wind', hint: 'Soft gusts outside' },
-    { id: 'crickets', label: 'Night crickets', hint: 'A warm evening' },
-    { id: 'brown', label: 'Brown noise', hint: 'Deep, steady focus' },
-    { id: 'coffee', label: 'Espresso machine', hint: 'Steam and a gurgle' }
+    { id: 'tracks', label: 'Lo-fi music', hint: 'Real lo-fi beats, shuffled', group: 'player' },
+    { id: 'music', label: 'Soft synth lo-fi', hint: 'Slow and warm', group: 'music' },
+    { id: 'jazz', label: 'Late night jazz', hint: 'Soft piano and brushes', group: 'music' },
+    { id: 'pads', label: 'Dreamy pads', hint: 'Slow, warm chords', group: 'music' },
+    { id: 'waves', label: 'Ocean waves', hint: 'Slow and soft', group: 'ambience' },
+    { id: 'fire', label: 'Fireplace', hint: 'Soft crackle', group: 'ambience' },
+    { id: 'chat', label: 'Cafe chatter', hint: 'Low, friendly murmur', group: 'ambience' },
+    { id: 'plates', label: 'Plates clinking', hint: 'Now and then', group: 'ambience' },
+    { id: 'keys', label: 'Keyboard clicks', hint: 'Other people typing', group: 'ambience' },
+    { id: 'rain', label: 'Rain', hint: 'On the window', group: 'ambience' },
+    { id: 'chimes', label: 'Wind chimes', hint: 'A breeze on the porch', group: 'ambience' },
+    { id: 'birds', label: 'Morning birds', hint: 'Garden songs', group: 'ambience' },
+    { id: 'storm', label: 'Thunderstorm', hint: 'Rain and far off thunder', group: 'ambience' },
+    { id: 'wind', label: 'Gentle wind', hint: 'Soft gusts outside', group: 'ambience' },
+    { id: 'crickets', label: 'Night crickets', hint: 'A warm evening', group: 'ambience' },
+    { id: 'brown', label: 'Brown noise', hint: 'Deep, steady focus', group: 'ambience' },
+    { id: 'coffee', label: 'Espresso machine', hint: 'Steam and a gurgle', group: 'ambience' }
   ];
   var TIME_CHIPS = [['auto', 'Real time'], ['morning', 'Morning'], ['day', 'Daytime'], ['golden', 'Golden hour'], ['evening', 'Evening'], ['night', 'Night']];
   var WX_CHIPS = [['clear', 'Clear'], ['cloudy', 'Cloudy'], ['rain', 'Rainy'], ['snow', 'Snowy']];
@@ -67,12 +68,12 @@
   }
   function defaults() {
     var snd = {};
-    SOUNDS.forEach(function (s) { snd[s.id] = { on: s.id === 'waves' || s.id === 'music', vol: s.id === 'waves' ? 0.45 : (s.id === 'music' ? 0.28 : 0.5) }; });
+    SOUNDS.forEach(function (s) { snd[s.id] = { on: s.id === 'waves' || s.id === 'tracks', vol: s.id === 'waves' ? 0.4 : (s.id === 'tracks' ? 0.5 : 0.5) }; });
     return {
       v: 1, savedAt: 0, char: Pe.defaultSpec(), hasChar: false, day: dayKey(), tasks: [], guide: false,
       plants: {}, points: 0, sessions: 0, minutes: 0, tasksDone: 0, streak: { count: 0, last: '' },
       sounds: snd, master: 0.8, muted: false, sfx: true,
-      vibes: { time: 'auto', wx: 'clear' }, calm: false,
+      vibes: { time: 'auto', wx: 'clear' }, track: 'all', calm: false,
       timer: { focus: 25, break: 5 }, daily: { day: '', picked: -1 }, nudged: false, choice: {}, vac: null, big: false, lights: {}
     };
   }
@@ -569,22 +570,53 @@
   }
   function applyAllSound() {
     try { Audio.setMaster(S.master, S.muted); Audio.setSfx(S.sfx, S.master); } catch (e) { /* ignore */ }
+    try { Audio.trackPick = S.track || 'all'; } catch (e) { /* ignore */ }
     SOUNDS.forEach(function (s) { applySound(s.id); });
   }
+  function soundRow(d) {
+    var s = S.sounds[d.id];
+    var sw = el('button', { class: 'switch', type: 'button', role: 'switch', 'aria-checked': String(!!s.on), 'aria-label': d.label, id: 'sw-' + d.id });
+    var vol = el('input', { type: 'range', min: '0', max: '100', value: String(Math.round(s.vol * 100)), 'aria-label': d.label + ' volume' });
+    sw.addEventListener('click', function () {
+      s.on = !s.on; sw.setAttribute('aria-checked', String(s.on)); applySound(d.id);
+      if (d.id === 'fire') syncScene();
+      if (d.id === 'tracks') updateNowPlaying();
+      save();
+    });
+    vol.addEventListener('input', function () { s.vol = vol.value / 100; applySound(d.id); save(); });
+    return el('div', { class: 'sound-row' + (d.group === 'player' ? ' main' : ''), title: d.hint }, [sw, el('label', { for: 'sw-' + d.id }, [d.label, el('small', { text: d.hint })]), vol]);
+  }
+  var nowTitle = '';
+  function updateNowPlaying() {
+    var n = $('now-playing'); if (!n) return;
+    var on = S.sounds.tracks && S.sounds.tracks.on && !S.muted;
+    n.textContent = on && nowTitle ? 'Now playing: ' + nowTitle : (S.sounds.tracks && S.sounds.tracks.on ? 'Tap anywhere if the music has not started' : 'Switch on to hear the lo-fi beats');
+  }
+  try { Audio.onTrack = function (title) { nowTitle = title; updateNowPlaying(); }; } catch (e) { /* ignore */ }
   function renderSounds() {
     var box = $('sound-rows'); box.innerHTML = '';
-    SOUNDS.forEach(function (d) {
-      var s = S.sounds[d.id];
-      var sw = el('button', { class: 'switch', type: 'button', role: 'switch', 'aria-checked': String(!!s.on), 'aria-label': d.label, id: 'sw-' + d.id });
-      var vol = el('input', { type: 'range', min: '0', max: '100', value: String(Math.round(s.vol * 100)), 'aria-label': d.label + ' volume' });
-      sw.addEventListener('click', function () {
-        s.on = !s.on; sw.setAttribute('aria-checked', String(s.on)); applySound(d.id);
-        if (d.id === 'fire') syncScene();
-        save();
-      });
-      vol.addEventListener('input', function () { s.vol = vol.value / 100; applySound(d.id); save(); });
-      box.appendChild(el('div', { class: 'sound-row', title: d.hint }, [sw, el('label', { for: 'sw-' + d.id }, [d.label, el('small', { text: d.hint })]), vol]));
+    var groups = [['player', 'Music'], ['music', 'More music'], ['ambience', 'Ambience']];
+    groups.forEach(function (g) {
+      var list = SOUNDS.filter(function (d) { return d.group === g[0]; });
+      if (g[0] === 'player') {
+        var wrap = el('div', { class: 'sound-group player' }, [el('h3', { text: 'Music' }), soundRow(list[0])]);
+        var pick = el('select', { class: 'track-pick', 'aria-label': 'Choose a lo-fi track' });
+        pick.appendChild(el('option', { value: 'all', text: 'Shuffle all tracks' }));
+        (Audio.TRACKS || []).forEach(function (t) { var o = el('option', { value: t.id, text: t.title }); if (S.track === t.id) o.selected = true; pick.appendChild(o); });
+        pick.addEventListener('change', function () { S.track = pick.value; try { Audio.pickTrack(S.track); } catch (e) { /* ignore */ } save(); });
+        var skip = el('button', { class: 'btn small', type: 'button', text: 'Skip', onclick: function () { try { Audio.skipTrack(); } catch (e) { /* ignore */ } S.track = 'all'; pick.value = 'all'; save(); } });
+        wrap.appendChild(el('p', { class: 'now-playing', id: 'now-playing', 'aria-live': 'polite' }));
+        wrap.appendChild(el('div', { class: 'track-ctl' }, [pick, skip]));
+        box.appendChild(wrap);
+        return;
+      }
+      var onN = list.filter(function (d) { return S.sounds[d.id] && S.sounds[d.id].on; }).length;
+      var grp = el('details', { class: 'sound-group fold' }, [el('summary', { text: g[1] + ' (' + list.length + ')' + (onN ? ', ' + onN + ' on' : '') })]);
+      var grid = el('div', { class: 'sound-grid' });
+      list.forEach(function (d) { grid.appendChild(soundRow(d)); });
+      grp.appendChild(grid); box.appendChild(grp);
     });
+    updateNowPlaying();
     $('master-vol').value = String(Math.round(S.master * 100));
     $('sfx').checked = !!S.sfx;
     renderMute();
