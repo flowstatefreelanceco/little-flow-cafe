@@ -7,7 +7,7 @@
   function midi(m) { return 440 * Math.pow(2, (m - 69) / 12); }
 
   // how loud each layer is at slider = 100%
-  var LAYER_GAIN = { waves: 0.8, fire: 1.0, chat: 0.55, plates: 0.8, keys: 0.7, rain: 0.75, music: 0.6, tracks: 0.9, jazz: 0.6, pads: 0.55, chimes: 0.7, birds: 0.6, storm: 0.8, brown: 0.7, crickets: 0.5, wind: 0.7, coffee: 0.8 };
+  var LAYER_GAIN = { waves: 0.8, fire: 0.95, chat: 0.55, plates: 0.8, keys: 0.7, rain: 0.75, music: 0.6, tracks: 0.9, jazz: 0.6, pads: 0.55, chimes: 0.7, birds: 0.6, storm: 0.8, brown: 0.7, crickets: 0.5, wind: 0.7, coffee: 0.8 };
 
   function makeNoise(ctx, seconds, type) {
     var n = Math.floor(ctx.sampleRate * seconds);
@@ -190,44 +190,49 @@
     return function () { alive = false; clearTimeout(timer); try { n.stop(); f.stop(); } catch (e) { /* ignore */ } };
   };
 
+  /* a few seconds of real crackle: sparse clicks, pops and snaps drawn straight into a buffer so they stay sharp */
+  function makeCrackleBuf(ctx, secs, seed) {
+    var sr = ctx.sampleRate, n = Math.floor(sr * secs), buf = ctx.createBuffer(1, n, sr), d = buf.getChannelData(0);
+    var s = seed >>> 0 || 1;
+    function r() { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }
+    var t = 0, mood = 1, moodT = 0, i, k;
+    while (t < secs - 0.05) {
+      if (t > moodT) { mood = 0.3 + r() * 2.2; moodT = t + 0.6 + r() * 2.2; }
+      t += -Math.log(1 - r()) / (9 * mood);
+      var at = Math.floor(t * sr), kind = r(), len, amp, prev = 0, lp = 0;
+      if (kind < 0.6) {            /* tick: tiny bright click */
+        len = Math.floor(sr * (0.0008 + r() * 0.0035)); amp = 0.25 + r() * 0.5;
+        for (i = 0; i < len && at + i < n; i++) { var x = (r() * 2 - 1); d[at + i] += (x - prev) * amp * Math.exp(-i / (len * 0.35)); prev = x; }
+      } else if (kind < 0.9) {     /* pop: short, rounder burst */
+        len = Math.floor(sr * (0.006 + r() * 0.016)); amp = 0.5 + r() * 0.5; var cut = 0.25 + r() * 0.5;
+        for (i = 0; i < len && at + i < n; i++) { lp += ((r() * 2 - 1) - lp) * cut; d[at + i] += lp * amp * 1.6 * Math.exp(-i / (len * 0.3)); }
+      } else {                     /* snap: a pop with a low knock under it */
+        len = Math.floor(sr * (0.018 + r() * 0.03)); amp = 0.8 + r() * 0.3; var f = 120 + r() * 160;
+        for (i = 0; i < len && at + i < n; i++) { var e = Math.exp(-i / (len * 0.28)); lp += ((r() * 2 - 1) - lp) * 0.6; d[at + i] += (lp * 0.9 + Math.sin(6.2832 * f * i / sr) * 0.7) * amp * e; }
+      }
+      if (r() < 0.3) { t += 0.004 + r() * 0.03; }   /* crackles tend to come in little bunches */
+    }
+    var peak = 0.0001; for (k = 0; k < n; k++) if (Math.abs(d[k]) > peak) peak = Math.abs(d[k]);
+    for (k = 0; k < n; k++) d[k] = d[k] / peak * 0.95;
+    return buf;
+  }
   LAYERS.fire = function (E, out) {
-    var ctx = E.ctx, alive = true, timer = null, timer2 = null;
-    /* a very quiet, slowly breathing low bed so it is not a steady rumble */
+    var ctx = E.ctx, srcs = [], nodes = [];
+    function addCrackle(seed, pan, gain, rate) {
+      var s = ctx.createBufferSource(); s.buffer = makeCrackleBuf(ctx, 7 + seed % 3, seed * 7919); s.loop = true; s.playbackRate.value = rate;
+      var g = ctx.createGain(); g.gain.value = gain; var pn = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      s.connect(g); if (pn) { pn.pan.value = pan; g.connect(pn); pn.connect(out); } else g.connect(out);
+      s.start(0, Math.random() * 5); srcs.push(s); nodes.push(g);
+    }
+    addCrackle(3, -0.45, 1.6, 1);
+    addCrackle(5, 0.45, 1.4, 0.93);
+    addCrackle(8, 0, 0.8, 1.12);
+    /* just a trace of warmth and flame air underneath, nothing you would call a rumble */
     var rumble = E.loop('brown'), lp = ctx.createBiquadFilter(), g1 = ctx.createGain();
-    lp.type = 'lowpass'; lp.frequency.value = 220; g1.gain.value = 0.1;
-    rumble.connect(lp); lp.connect(g1); g1.connect(out);
-    var lfo = ctx.createOscillator(), lg = ctx.createGain();
-    lfo.frequency.value = 0.23; lg.gain.value = 0.05; lfo.connect(lg); lg.connect(g1.gain); lfo.start();
-    /* airy flutter of the flames in the mids and highs */
-    var fl = E.loop('pink'), bp = ctx.createBiquadFilter(), g2 = ctx.createGain();
-    bp.type = 'bandpass'; bp.frequency.value = 1800; bp.Q.value = 0.7; g2.gain.value = 0.05;
-    fl.connect(bp); bp.connect(g2); g2.connect(out);
-    var lfo2 = ctx.createOscillator(), lg2 = ctx.createGain();
-    lfo2.frequency.value = 0.9; lg2.gain.value = 0.035; lfo2.connect(lg2); lg2.connect(g2.gain); lfo2.start();
-    var hiss = E.loop('white'), hp = ctx.createBiquadFilter(), g3 = ctx.createGain();
-    hp.type = 'highpass'; hp.frequency.value = 5000; g3.gain.value = 0.012;
-    hiss.connect(hp); hp.connect(g3); g3.connect(out);
-    /* crackles and pops */
-    function crackle() {
-      if (!alive) return;
-      var r = Math.random(), big = r < 0.1, med = !big && r < 0.4;
-      E.burst(out, {
-        freq: big ? rand(400, 1100) : med ? rand(1500, 3200) : rand(2800, 7000), q: rand(1, 4),
-        amp: big ? rand(0.5, 0.85) : med ? rand(0.18, 0.4) : rand(0.08, 0.25),
-        dur: big ? rand(0.025, 0.06) : rand(0.004, 0.022), type: 'bandpass', pan: rand(-0.5, 0.5)
-      });
-      if (Math.random() < 0.25) setTimeout(function () { if (alive) E.burst(out, { freq: rand(2500, 6500), q: rand(1, 3), amp: rand(0.06, 0.2), dur: rand(0.004, 0.012), type: 'bandpass', pan: rand(-0.5, 0.5) }); }, rand(15, 60));
-      timer = setTimeout(crackle, Math.random() < 0.15 ? rand(350, 1300) : rand(25, 200));
-    }
-    crackle();
-    /* now and then a soft settle of the logs */
-    function settle() {
-      if (!alive) return;
-      E.burst(out, { freq: rand(250, 520), q: 1.2, amp: rand(0.25, 0.45), dur: rand(0.08, 0.16), type: 'bandpass', pan: rand(-0.3, 0.3) });
-      timer2 = setTimeout(settle, rand(7000, 16000));
-    }
-    timer2 = setTimeout(settle, rand(3000, 8000));
-    return function () { alive = false; clearTimeout(timer); clearTimeout(timer2); try { rumble.stop(); fl.stop(); hiss.stop(); lfo.stop(); lfo2.stop(); } catch (e) { /* ignore */ } };
+    lp.type = 'lowpass'; lp.frequency.value = 160; g1.gain.value = 0.035; rumble.connect(lp); lp.connect(g1); g1.connect(out);
+    var air = E.loop('pink'), bp = ctx.createBiquadFilter(), g2 = ctx.createGain();
+    bp.type = 'bandpass'; bp.frequency.value = 2400; bp.Q.value = 0.6; g2.gain.value = 0.012; air.connect(bp); bp.connect(g2); g2.connect(out);
+    return function () { try { srcs.forEach(function (s) { s.stop(); }); rumble.stop(); air.stop(); } catch (e) { /* ignore */ } };
   };
 
   LAYERS.rain = function (E, out) {
