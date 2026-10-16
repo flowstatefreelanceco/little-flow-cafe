@@ -304,22 +304,22 @@
     };
   };
 
-  LAYERS.plates = function (E, out) {
+  LAYERS.platesSynth = function (E, out) {
     var ctx = E.ctx, alive = true, timer = null;
     function clink() {
       if (!alive) return;
       var now = ctx.currentTime, kind = Math.random();
       if (kind < 0.55) {
         var n = 1 + Math.floor(Math.random() * 3), f = rand(2400, 4200);
-        for (var i = 0; i < n; i++) E.ping(out, f * rand(0.9, 1.15), rand(0.05, 0.1), rand(0.12, 0.3), now + i * rand(0.06, 0.14));
+        for (var i = 0; i < n; i++) E.ping(out, f * rand(0.9, 1.15), rand(0.2, 0.34), rand(0.12, 0.3), now + i * rand(0.06, 0.14));
       } else if (kind < 0.8) {
-        E.ping(out, rand(1700, 2500), 0.07, rand(0.4, 0.7), now);
-        E.ping(out, rand(1700, 2500), 0.05, rand(0.3, 0.5), now + rand(0.1, 0.2));
+        E.ping(out, rand(1700, 2500), 0.26, rand(0.4, 0.7), now);
+        E.ping(out, rand(1700, 2500), 0.2, rand(0.3, 0.5), now + rand(0.1, 0.2));
       } else {
-        E.burst(out, { freq: rand(200, 400), q: 0.8, amp: 0.2, dur: 0.07, type: 'lowpass' });
-        E.ping(out, rand(3000, 4600), 0.05, 0.14, now + 0.02);
+        E.burst(out, { freq: rand(200, 400), q: 0.8, amp: 0.5, dur: 0.07, type: 'lowpass' });
+        E.ping(out, rand(3000, 4600), 0.2, 0.14, now + 0.02);
       }
-      timer = setTimeout(clink, rand(2500, 9000));
+      timer = setTimeout(clink, rand(1500, 5500));
     }
     timer = setTimeout(clink, 600);
     return function () { alive = false; clearTimeout(timer); };
@@ -648,7 +648,8 @@
   }
   sampled('fire', ['sounds/fire-a.mp3', 'sounds/fire-b.mp3'], [1, 0.55]);
   sampled('chat', ['sounds/diner-a.mp3'], [1]);
-  sampled('plates', ['sounds/diner-b.mp3'], [1]);
+  sampled('plates', ['sounds/diner-b.mp3'], [0.9]);
+  (function () { var room = LAYERS.plates; LAYERS.plates = function (E, out) { var a = room(E, out), b = LAYERS.platesSynth(E, out); return function () { a(); b(); }; }; })();
   sampled('rain', ['sounds/rain-amb.mp3'], [1]);
   sampled('wind', ['sounds/wind-amb.mp3'], [1]);
   sampled('crickets', ['sounds/night-amb.mp3'], [1]);
