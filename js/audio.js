@@ -7,7 +7,7 @@
   function midi(m) { return 440 * Math.pow(2, (m - 69) / 12); }
 
   // how loud each layer is at slider = 100%
-  var LAYER_GAIN = { waves: 0.8, fire: 0.95, chat: 0.55, plates: 0.8, keys: 0.7, rain: 0.75, music: 0.6, tracks: 0.9, jazz: 0.6, pads: 0.55, chimes: 0.7, birds: 0.6, storm: 0.8, brown: 0.7, crickets: 0.5, wind: 0.7, coffee: 0.8 };
+  var LAYER_GAIN = { waves: 0.8, fire: 0.95, chat: 0.8, plates: 0.8, keys: 0.7, rain: 0.75, music: 0.6, tracks: 0.9, jazz: 0.6, pads: 0.55, chimes: 0.7, birds: 0.6, storm: 0.8, brown: 0.7, crickets: 0.5, wind: 0.7, coffee: 0.8 };
 
   function makeNoise(ctx, seconds, type) {
     var n = Math.floor(ctx.sampleRate * seconds);
@@ -647,6 +647,8 @@
     };
   }
   sampled('fire', ['sounds/fire-a.mp3', 'sounds/fire-b.mp3'], [1, 0.55]);
+  sampled('chat', ['sounds/diner-a.mp3'], [1]);
+  sampled('plates', ['sounds/diner-b.mp3'], [1]);
   sampled('rain', ['sounds/rain-amb.mp3'], [1]);
   sampled('wind', ['sounds/wind-amb.mp3'], [1]);
   sampled('crickets', ['sounds/night-amb.mp3'], [1]);
